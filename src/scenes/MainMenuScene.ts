@@ -36,7 +36,7 @@ export class MainMenuScene extends Phaser.Scene {
       width / 2, height * 0.80, width * 0.75, height * 0.07, 0x000000, 0
     ).setInteractive({ useHandCursor: true }).setDepth(10);
 
-    playBtn.on('pointerdown', () => this.startGame());
+    playBtn.on('pointerup', () => this.startGame());
 
     // Keyboard shortcut
     this.input.keyboard?.on('keydown-SPACE', () => this.startGame());

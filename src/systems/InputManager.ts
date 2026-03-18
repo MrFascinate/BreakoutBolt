@@ -16,20 +16,23 @@ export class InputManager {
     this.setupKeyboard();
   }
 
+  private swiped = false;
+
   private setupTouch(): void {
     this.scene.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
       this.startX = pointer.x;
       this.startY = pointer.y;
+      this.swiped = false;
     });
 
-    this.scene.input.on('pointerup', (pointer: Phaser.Input.Pointer) => {
-      if (!this.enabled) return;
+    // Fire lane change as soon as swipe threshold is crossed — no waiting for finger lift
+    this.scene.input.on('pointermove', (pointer: Phaser.Input.Pointer) => {
+      if (!this.enabled || this.swiped || !pointer.isDown) return;
 
       const dx = pointer.x - this.startX;
-      const absDx = Math.abs(dx);
+      if (Math.abs(dx) < CONSTANTS.SWIPE_THRESHOLD) return;
 
-      if (absDx < CONSTANTS.SWIPE_THRESHOLD) return;
-
+      this.swiped = true;
       this.actionCallback(dx > 0 ? 'right' : 'left');
     });
   }
@@ -58,6 +61,6 @@ export class InputManager {
 
   destroy(): void {
     this.scene.input.off('pointerdown');
-    this.scene.input.off('pointerup');
+    this.scene.input.off('pointermove');
   }
 }

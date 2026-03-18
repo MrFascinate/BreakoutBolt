@@ -88,11 +88,11 @@ export class BootScene extends Phaser.Scene {
       repeat: -1,
     });
 
-    // Hater: use all 12 frames from the native spritesheet for a full running cycle
+    // Hater: use middle row only (frames 4-7) for consistent character positioning
     this.anims.create({
       key: 'hater-run-anim',
-      frames: this.anims.generateFrameNumbers('hater-sheet', { start: 0, end: 11 }),
-      frameRate: 10,
+      frames: this.anims.generateFrameNumbers('hater-sheet', { start: 4, end: 7 }),
+      frameRate: 8,
       repeat: -1,
     });
 

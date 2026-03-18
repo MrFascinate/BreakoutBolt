@@ -89,14 +89,14 @@ export class GameOverScene extends Phaser.Scene {
       width / 2, height * 0.75, width * 0.75, height * 0.07, 0x000000, 0
     ).setInteractive({ useHandCursor: true }).setDepth(10);
 
-    retryBtn.on('pointerdown', () => this.startGame());
+    retryBtn.on('pointerup', () => this.startGame());
 
     // MAIN MENU button — hit area over the baked-in dark button (~85%)
     const menuBtn = this.add.rectangle(
       width / 2, height * 0.85, width * 0.75, height * 0.06, 0x000000, 0
     ).setInteractive({ useHandCursor: true }).setDepth(10);
 
-    menuBtn.on('pointerdown', () => {
+    menuBtn.on('pointerup', () => {
       if (this.starting) return;
       this.starting = true;
       this.scene.start('MainMenuScene');
@@ -112,41 +112,6 @@ export class GameOverScene extends Phaser.Scene {
   private startGame(): void {
     if (this.starting) return;
     this.starting = true;
-
-    const width = getGameWidth(this);
-    const height = getGameHeight(this);
-
-    // Flash + GO! animation, then switch scene via delayedCall for reliability
-    const flash = this.add.rectangle(width / 2, height / 2, width, height, 0xffffff, 0)
-      .setDepth(100);
-
-    this.tweens.add({
-      targets: flash,
-      alpha: { from: 0, to: 0.9 },
-      duration: 120,
-      yoyo: true,
-    });
-
-    const goText = this.add.text(width / 2, height / 2, 'GO!', {
-      fontSize: '72px',
-      fontFamily: 'Arial Black, Arial',
-      color: '#ff6b35',
-      stroke: '#000000',
-      strokeThickness: 8,
-    }).setOrigin(0.5).setDepth(101).setScale(0.3).setAlpha(0);
-
-    this.tweens.add({
-      targets: goText,
-      scale: 1.5,
-      alpha: { from: 1, to: 0 },
-      delay: 100,
-      duration: 450,
-      ease: 'Power2',
-    });
-
-    // Scene switch via delayedCall — guaranteed to fire
-    this.time.delayedCall(600, () => {
-      this.scene.start('GameScene');
-    });
+    this.scene.start('GameScene');
   }
 }
