@@ -26,7 +26,7 @@ export class Player {
       this.groundY - CONSTANTS.PLAYER_HEIGHT / 2,
       CONSTANTS.PLAYER_WIDTH,
       CONSTANTS.PLAYER_HEIGHT,
-      0x00cc44
+      0xff6b35
     ).setDepth(5);
   }
 
@@ -78,9 +78,9 @@ export class Player {
     this.invincible = true;
 
     // Flash red
-    this.sprite.setFillStyle(0xff0000);
+    this.sprite.setFillStyle(0xff2222);
     this.scene.time.delayedCall(100, () => {
-      this.sprite.setFillStyle(0x00cc44);
+      this.sprite.setFillStyle(0xff6b35);
     });
 
     // Start invincibility flash

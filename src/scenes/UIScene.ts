@@ -15,32 +15,35 @@ export class UIScene extends Phaser.Scene {
     const width = getGameWidth(this);
     const padding = 16;
 
-    this.distanceText = this.add.text(padding, padding, 'Distance: 0.00 km', {
-      fontSize: '16px',
+    // Semi-transparent HUD bar at top
+    this.add.rectangle(width / 2, 0, width, 44, 0x000000, 0.5).setOrigin(0.5, 0);
+
+    this.distanceText = this.add.text(padding, 12, 'Distance: 0.00 km', {
+      fontSize: '14px',
       fontFamily: 'Arial',
-      color: '#ffffff',
+      color: '#d4a574',
       stroke: '#000000',
-      strokeThickness: 3,
+      strokeThickness: 2,
     });
 
-    this.scoreText = this.add.text(width - padding, padding, 'Score: 0', {
-      fontSize: '16px',
+    this.scoreText = this.add.text(width - padding, 12, 'Score: 0', {
+      fontSize: '14px',
       fontFamily: 'Arial',
       color: '#ffffff',
       stroke: '#000000',
-      strokeThickness: 3,
+      strokeThickness: 2,
     }).setOrigin(1, 0);
 
-    this.livesText = this.add.text(width / 2, padding, '', {
-      fontSize: '20px',
+    this.livesText = this.add.text(width / 2, 12, '', {
+      fontSize: '18px',
       fontFamily: 'Arial',
       color: '#ff4444',
       stroke: '#000000',
-      strokeThickness: 3,
+      strokeThickness: 2,
     }).setOrigin(0.5, 0);
 
-    this.toastText = this.add.text(width / 2, 80, '', {
-      fontSize: '18px',
+    this.toastText = this.add.text(width / 2, 60, '', {
+      fontSize: '20px',
       fontFamily: 'Arial Black, Arial',
       color: '#ffdd00',
       stroke: '#000000',
@@ -51,6 +54,7 @@ export class UIScene extends Phaser.Scene {
     const gameScene = this.scene.get('GameScene');
 
     gameScene.events.on('score-updated', (data: { score: number; distance: string }) => {
+      if (!data) return;
       this.scoreText.setText(`Score: ${data.score.toLocaleString()}`);
       this.distanceText.setText(`Distance: ${data.distance}`);
     });
@@ -73,13 +77,13 @@ export class UIScene extends Phaser.Scene {
   private showToast(message: string): void {
     this.toastText.setText(message);
     this.toastText.setAlpha(1);
-    this.toastText.setY(80);
+    this.toastText.setY(60);
 
     this.tweens.add({
       targets: this.toastText,
-      y: 60,
+      y: 46,
       alpha: 0,
-      duration: 800,
+      duration: 900,
       ease: 'Power2',
     });
   }

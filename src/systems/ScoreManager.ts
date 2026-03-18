@@ -3,14 +3,8 @@ import { CONSTANTS } from '../config/Constants';
 export class ScoreManager {
   private score = 0;
   private distance = 0;
-  private combo = 0;
   private comboMultiplier = 1;
   private consecutiveDodges = 0;
-  private scene: Phaser.Scene;
-
-  constructor(scene: Phaser.Scene) {
-    this.scene = scene;
-  }
 
   addDistance(pixels: number): void {
     this.distance += pixels;
@@ -23,13 +17,10 @@ export class ScoreManager {
       this.comboMultiplier += CONSTANTS.COMBO_INCREMENT;
     }
     this.score += Math.floor(CONSTANTS.DODGE_BONUS * this.comboMultiplier);
-    this.scene.events.emit('score-updated');
   }
 
   addNearMissBonus(): void {
     this.score += Math.floor(CONSTANTS.NEAR_MISS_BONUS * this.comboMultiplier);
-    this.scene.events.emit('near-miss');
-    this.scene.events.emit('score-updated');
   }
 
   resetCombo(): void {
@@ -57,7 +48,6 @@ export class ScoreManager {
   reset(): void {
     this.score = 0;
     this.distance = 0;
-    this.combo = 0;
     this.comboMultiplier = 1;
     this.consecutiveDodges = 0;
   }

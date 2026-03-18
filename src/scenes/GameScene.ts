@@ -34,14 +34,14 @@ export class GameScene extends Phaser.Scene {
     this.player = new Player(this);
     this.obstaclePool = new ObstaclePool(this);
     this.spawner = new ObstacleSpawner(this, this.obstaclePool);
-    this.scoreManager = new ScoreManager(this);
+    this.scoreManager = new ScoreManager();
     this.inputManager = new InputManager(this, (action) => this.handleAction(action));
 
     // Launch UI scene in parallel
-    this.scene.launch('UIScene', {
-      lives: this.lives,
-      scoreManager: this.scoreManager,
-    });
+    if (this.scene.isActive('UIScene')) {
+      this.scene.stop('UIScene');
+    }
+    this.scene.launch('UIScene', { lives: this.lives });
 
     // Emit initial state
     this.events.emit('lives-changed', this.lives);
@@ -66,7 +66,7 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
-  update(time: number, delta: number): void {
+  update(_time: number, delta: number): void {
     if (this.gameOver) return;
 
     // Speed scaling
@@ -90,7 +90,7 @@ export class GameScene extends Phaser.Scene {
     // Collision detection
     this.checkCollisions();
 
-    // Emit score updates
+    // Emit score updates to UIScene every frame
     this.events.emit('score-updated', {
       score: this.scoreManager.getScore(),
       distance: this.scoreManager.getDistanceFormatted(),
@@ -101,25 +101,37 @@ export class GameScene extends Phaser.Scene {
     const playerBounds = this.player.getBounds();
     const activeObstacles = this.obstaclePool.getActive();
     const groundY = getGroundY(this);
+    const playerY = groundY - CONSTANTS.PLAYER_HEIGHT / 2;
 
     for (const obstacle of activeObstacles) {
-      // Only check obstacles near the player
-      if (Math.abs(obstacle.getY() - (groundY - CONSTANTS.PLAYER_HEIGHT / 2)) > 100) {
-        // Check if obstacle passed player (for dodge bonus)
-        if (obstacle.getY() > groundY && !obstacle.wasDodged()) {
+      const obstacleY = obstacle.getY();
+
+      // Obstacle has passed below the player zone — award dodge if not already handled
+      if (obstacleY > playerY + 60) {
+        if (!obstacle.wasDodged()) {
           obstacle.markDodged();
           this.scoreManager.addDodgeBonus();
         }
         continue;
       }
 
+      // Only check collision for obstacles near the player vertically
+      if (Math.abs(obstacleY - playerY) > 80) {
+        continue;
+      }
+
+      // Already handled this obstacle
+      if (obstacle.wasDodged()) continue;
+
       if (obstacle.checkCollision(playerBounds)) {
         if (!this.player.isInvincible()) {
+          obstacle.markDodged(); // Prevent dodge bonus for obstacles that hit you
           this.onPlayerHit();
         }
-      } else if (obstacle.checkNearMiss(playerBounds) && !obstacle.wasDodged()) {
+      } else if (obstacle.checkNearMiss(playerBounds)) {
         obstacle.markDodged();
         this.scoreManager.addNearMissBonus();
+        this.events.emit('near-miss');
       }
     }
   }
@@ -143,12 +155,11 @@ export class GameScene extends Phaser.Scene {
     this.gameOver = true;
     this.inputManager.setEnabled(false);
 
-    this.time.delayedCall(500, () => {
+    this.time.delayedCall(800, () => {
+      const score = this.scoreManager.getScore();
+      const distance = this.scoreManager.getDistanceFormatted();
       this.scene.stop('UIScene');
-      this.scene.start('GameOverScene', {
-        score: this.scoreManager.getScore(),
-        distance: this.scoreManager.getDistanceFormatted(),
-      });
+      this.scene.start('GameOverScene', { score, distance });
     });
   }
 

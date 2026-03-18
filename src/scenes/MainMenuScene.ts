@@ -10,46 +10,51 @@ export class MainMenuScene extends Phaser.Scene {
     const width = getGameWidth(this);
     const height = getGameHeight(this);
 
+    // Dark background
+    this.cameras.main.setBackgroundColor('#0d0d1a');
+
     // Title
-    this.add.text(width / 2, height * 0.25, 'OUTRUN\nTHE OPS', {
+    this.add.text(width / 2, height * 0.22, 'OUTRUN\nTHE OPS', {
       fontSize: '48px',
       fontFamily: 'Arial Black, Arial',
-      color: '#00cc44',
+      color: '#ff6b35',
       align: 'center',
       stroke: '#000000',
-      strokeThickness: 6,
+      strokeThickness: 8,
     }).setOrigin(0.5);
 
     // Subtitle
-    this.add.text(width / 2, height * 0.42, 'South LA Endless Runner', {
+    this.add.text(width / 2, height * 0.40, 'South LA Endless Runner', {
       fontSize: '16px',
       fontFamily: 'Arial',
-      color: '#ffffff',
+      color: '#d4a574',
       align: 'center',
     }).setOrigin(0.5);
 
     // Play button
     const playBtn = this.add.rectangle(
-      width / 2, height * 0.6, 200, 60, 0x00cc44
+      width / 2, height * 0.54, 220, 64, 0xff6b35
     ).setInteractive({ useHandCursor: true });
 
-    this.add.text(width / 2, height * 0.6, 'PLAY', {
-      fontSize: '28px',
+    this.add.text(width / 2, height * 0.54, 'PLAY', {
+      fontSize: '30px',
       fontFamily: 'Arial Black, Arial',
-      color: '#000000',
+      color: '#ffffff',
+      stroke: '#000000',
+      strokeThickness: 2,
     }).setOrigin(0.5);
 
-    playBtn.on('pointerover', () => playBtn.setFillStyle(0x00ff55));
-    playBtn.on('pointerout', () => playBtn.setFillStyle(0x00cc44));
+    playBtn.on('pointerover', () => playBtn.setFillStyle(0xff8855));
+    playBtn.on('pointerout', () => playBtn.setFillStyle(0xff6b35));
     playBtn.on('pointerdown', () => {
       this.scene.start('GameScene');
     });
 
     // Controls section
-    this.add.text(width / 2, height * 0.72, '— CONTROLS —', {
-      fontSize: '16px',
+    this.add.text(width / 2, height * 0.66, '— CONTROLS —', {
+      fontSize: '15px',
       fontFamily: 'Arial Black, Arial',
-      color: '#00cc44',
+      color: '#ff6b35',
       align: 'center',
     }).setOrigin(0.5);
 
@@ -60,7 +65,7 @@ export class MainMenuScene extends Phaser.Scene {
       ['Slide', 'Swipe Down  /  \u2193 or S'],
     ];
 
-    const startY = height * 0.77;
+    const startY = height * 0.71;
     const lineHeight = 22;
     const colLeft = width / 2 - 10;
     const colRight = width / 2 + 10;
@@ -70,22 +75,22 @@ export class MainMenuScene extends Phaser.Scene {
       this.add.text(colLeft, y, line[0], {
         fontSize: '13px',
         fontFamily: 'Arial',
-        color: '#ffffff',
+        color: '#e0e0e0',
         align: 'right',
       }).setOrigin(1, 0.5);
 
       this.add.text(colRight, y, line[1], {
         fontSize: '13px',
         fontFamily: 'Arial',
-        color: '#aaaaaa',
+        color: '#999999',
         align: 'left',
       }).setOrigin(0, 0.5);
     });
 
-    this.add.text(width / 2, startY + controlLines.length * lineHeight + 14, 'Dodge cops, MAGA, and haters. Don\'t get caught!', {
+    this.add.text(width / 2, startY + controlLines.length * lineHeight + 18, 'Dodge cops, MAGA, and haters. Don\'t get caught!', {
       fontSize: '12px',
       fontFamily: 'Arial',
-      color: '#888888',
+      color: '#777777',
       align: 'center',
     }).setOrigin(0.5);
 

@@ -10,65 +10,95 @@ export class GameOverScene extends Phaser.Scene {
     const width = getGameWidth(this);
     const height = getGameHeight(this);
 
-    // Darken background
-    this.add.rectangle(width / 2, height / 2, width, height, 0x000000, 0.7);
+    // Dark background
+    this.cameras.main.setBackgroundColor('#0d0d1a');
+
+    // Red accent bar at top
+    this.add.rectangle(width / 2, 0, width, 6, 0xff3333).setOrigin(0.5, 0);
 
     // Game Over text
-    this.add.text(width / 2, height * 0.2, 'GAME OVER', {
-      fontSize: '42px',
+    this.add.text(width / 2, height * 0.18, 'GAME OVER', {
+      fontSize: '44px',
       fontFamily: 'Arial Black, Arial',
-      color: '#ff4444',
+      color: '#ff3333',
       stroke: '#000000',
       strokeThickness: 6,
     }).setOrigin(0.5);
 
+    // Divider
+    this.add.rectangle(width / 2, height * 0.27, 120, 2, 0x333344);
+
     // Score
-    this.add.text(width / 2, height * 0.38, `Score: ${data.score.toLocaleString()}`, {
-      fontSize: '28px',
+    this.add.text(width / 2, height * 0.34, 'SCORE', {
+      fontSize: '14px',
       fontFamily: 'Arial',
+      color: '#888899',
+      letterSpacing: 4,
+    }).setOrigin(0.5);
+
+    this.add.text(width / 2, height * 0.40, `${(data.score ?? 0).toLocaleString()}`, {
+      fontSize: '36px',
+      fontFamily: 'Arial Black, Arial',
       color: '#ffffff',
     }).setOrigin(0.5);
 
     // Distance
-    this.add.text(width / 2, height * 0.46, `Distance: ${data.distance}`, {
-      fontSize: '22px',
+    this.add.text(width / 2, height * 0.48, 'DISTANCE', {
+      fontSize: '14px',
       fontFamily: 'Arial',
-      color: '#cccccc',
+      color: '#888899',
+      letterSpacing: 4,
+    }).setOrigin(0.5);
+
+    this.add.text(width / 2, height * 0.53, `${data.distance ?? '0.00 km'}`, {
+      fontSize: '24px',
+      fontFamily: 'Arial',
+      color: '#d4a574',
     }).setOrigin(0.5);
 
     // Retry button
     const retryBtn = this.add.rectangle(
-      width / 2, height * 0.62, 200, 60, 0x00cc44
+      width / 2, height * 0.66, 220, 60, 0xff6b35
     ).setInteractive({ useHandCursor: true });
 
-    this.add.text(width / 2, height * 0.62, 'PLAY AGAIN', {
+    this.add.text(width / 2, height * 0.66, 'PLAY AGAIN', {
       fontSize: '24px',
       fontFamily: 'Arial Black, Arial',
-      color: '#000000',
+      color: '#ffffff',
+      stroke: '#000000',
+      strokeThickness: 2,
     }).setOrigin(0.5);
 
-    retryBtn.on('pointerover', () => retryBtn.setFillStyle(0x00ff55));
-    retryBtn.on('pointerout', () => retryBtn.setFillStyle(0x00cc44));
+    retryBtn.on('pointerover', () => retryBtn.setFillStyle(0xff8855));
+    retryBtn.on('pointerout', () => retryBtn.setFillStyle(0xff6b35));
     retryBtn.on('pointerdown', () => {
       this.scene.start('GameScene');
     });
 
     // Menu button
     const menuBtn = this.add.rectangle(
-      width / 2, height * 0.74, 200, 50, 0x444444
-    ).setInteractive({ useHandCursor: true });
+      width / 2, height * 0.77, 220, 50, 0x222233
+    ).setInteractive({ useHandCursor: true })
+      .setStrokeStyle(2, 0x444466);
 
-    this.add.text(width / 2, height * 0.74, 'MAIN MENU', {
+    this.add.text(width / 2, height * 0.77, 'MAIN MENU', {
       fontSize: '20px',
       fontFamily: 'Arial',
-      color: '#ffffff',
+      color: '#ccccdd',
     }).setOrigin(0.5);
 
-    menuBtn.on('pointerover', () => menuBtn.setFillStyle(0x666666));
-    menuBtn.on('pointerout', () => menuBtn.setFillStyle(0x444444));
+    menuBtn.on('pointerover', () => menuBtn.setFillStyle(0x333355));
+    menuBtn.on('pointerout', () => menuBtn.setFillStyle(0x222233));
     menuBtn.on('pointerdown', () => {
       this.scene.start('MainMenuScene');
     });
+
+    // Hint text
+    this.add.text(width / 2, height * 0.88, 'SPACE to retry  |  ESC for menu', {
+      fontSize: '11px',
+      fontFamily: 'Arial',
+      color: '#555566',
+    }).setOrigin(0.5);
 
     // Keyboard shortcuts
     this.input.keyboard?.on('keydown-SPACE', () => {

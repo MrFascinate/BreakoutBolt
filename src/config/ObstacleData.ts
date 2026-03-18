@@ -4,7 +4,7 @@ export const OBSTACLE_CONFIGS: Record<string, ObstacleConfig> = {
   cop: {
     type: 'cop',
     spawnWeight: 50,
-    color: 0x0000ff,
+    color: 0x3388ff,       // Bright blue — visible against dark ground
     width: 50,
     height: 70,
     collisionWidthRatio: 0.6,
@@ -18,7 +18,7 @@ export const OBSTACLE_CONFIGS: Record<string, ObstacleConfig> = {
   maga: {
     type: 'maga',
     spawnWeight: 35,
-    color: 0xff0000,
+    color: 0xff2222,       // Bright red
     width: 50,
     height: 55,
     collisionWidthRatio: 0.7,
@@ -32,7 +32,7 @@ export const OBSTACLE_CONFIGS: Record<string, ObstacleConfig> = {
   hater: {
     type: 'hater',
     spawnWeight: 15,
-    color: 0x800080,
+    color: 0xcc44ff,       // Bright purple
     width: 45,
     height: 60,
     collisionWidthRatio: 0.5,

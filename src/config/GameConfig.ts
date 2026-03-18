@@ -14,7 +14,7 @@ export function createGameConfig(): Phaser.Types.Core.GameConfig {
     width,
     height,
     parent: document.body,
-    backgroundColor: '#87CEEB',
+    backgroundColor: '#0d0d1a',
     physics: {
       default: 'arcade',
       arcade: {
