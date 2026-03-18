@@ -18,6 +18,7 @@ export class GameScene extends Phaser.Scene {
   private currentSpeed: number = CONSTANTS.INITIAL_SPEED;
   private lives = CONSTANTS.LIVES;
   private gameOver = false;
+  private paused = false;
   private level = 1;
   private distanceForNextLevel = CONSTANTS.LEVEL_DISTANCE;
 
@@ -30,6 +31,7 @@ export class GameScene extends Phaser.Scene {
     this.currentSpeed = CONSTANTS.INITIAL_SPEED;
     this.lives = CONSTANTS.LIVES;
     this.gameOver = false;
+    this.paused = false;
     this.distanceForNextLevel = CONSTANTS.LEVEL_DISTANCE;
 
     this.background = new ScrollingBackground(this);
@@ -48,6 +50,14 @@ export class GameScene extends Phaser.Scene {
     }
     this.scene.launch('UIScene', { lives: this.lives, level: this.level });
 
+    // Listen for pause toggle from UIScene
+    const uiScene = this.scene.get('UIScene');
+    uiScene.events.on('toggle-pause', () => this.togglePause());
+
+    // Keyboard pause (P or Escape)
+    this.input.keyboard?.on('keydown-P', () => this.togglePause());
+    this.input.keyboard?.on('keydown-ESC', () => this.togglePause());
+
     // Emit initial state
     this.events.emit('lives-changed', this.lives);
     this.events.emit('level-changed', this.level);
@@ -61,8 +71,15 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
-  update(_time: number, delta: number): void {
+  private togglePause(): void {
     if (this.gameOver) return;
+    this.paused = !this.paused;
+    this.inputManager.setEnabled(!this.paused);
+    this.events.emit('pause-changed', this.paused);
+  }
+
+  update(_time: number, delta: number): void {
+    if (this.gameOver || this.paused) return;
 
     this.background.update(this.currentSpeed);
     this.obstaclePool.update(this.currentSpeed, delta);

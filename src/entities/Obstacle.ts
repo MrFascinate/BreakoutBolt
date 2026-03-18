@@ -15,7 +15,7 @@ const ANIM_KEYS: Record<ObstacleType, string> = {
 
 // Display sizes per type — larger than collision boxes for visibility
 const DISPLAY_SIZES: Record<ObstacleType, { w: number; h: number }> = {
-  cop: { w: 85, h: 115 },
+  cop: { w: 90, h: 150 },
   maga: { w: 80, h: 110 },
   hater: { w: 75, h: 100 },
 };

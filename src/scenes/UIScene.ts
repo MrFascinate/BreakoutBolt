@@ -8,6 +8,7 @@ export class UIScene extends Phaser.Scene {
   private levelText!: Phaser.GameObjects.Text;
   private toastText!: Phaser.GameObjects.Text;
   private levelUpText!: Phaser.GameObjects.Text;
+  private pauseOverlay!: Phaser.GameObjects.Container;
 
   constructor() {
     super({ key: 'UIScene' });
@@ -73,6 +74,42 @@ export class UIScene extends Phaser.Scene {
       strokeThickness: 8,
     }).setOrigin(0.5).setAlpha(0);
 
+    // Pause button (top-right corner, inside HUD bar)
+    const pauseBtn = this.add.text(width - padding, 30, '⏸', {
+      fontSize: '22px',
+      fontFamily: 'Arial',
+      color: '#ffffff',
+    }).setOrigin(1, 0.5).setInteractive({ useHandCursor: true }).setDepth(20);
+
+    pauseBtn.on('pointerdown', () => {
+      this.events.emit('toggle-pause');
+    });
+
+    // Pause overlay (hidden by default)
+    const dimBg = this.add.rectangle(width / 2, height / 2, width, height, 0x000000, 0.7);
+    const pausedText = this.add.text(width / 2, height * 0.38, 'PAUSED', {
+      fontSize: '48px',
+      fontFamily: 'Arial Black, Arial',
+      color: '#ffffff',
+      stroke: '#000000',
+      strokeThickness: 6,
+    }).setOrigin(0.5);
+
+    const resumeText = this.add.text(width / 2, height * 0.47, 'Tap anywhere or press P to resume', {
+      fontSize: '14px',
+      fontFamily: 'Arial',
+      color: '#cccccc',
+    }).setOrigin(0.5);
+
+    this.pauseOverlay = this.add.container(0, 0, [dimBg, pausedText, resumeText]);
+    this.pauseOverlay.setDepth(50).setVisible(false);
+
+    // Tap the overlay to resume
+    dimBg.setInteractive();
+    dimBg.on('pointerdown', () => {
+      this.events.emit('toggle-pause');
+    });
+
     // Listen to GameScene events
     const gameScene = this.scene.get('GameScene');
 
@@ -95,6 +132,10 @@ export class UIScene extends Phaser.Scene {
       if (level > 1) {
         this.showLevelUp(level);
       }
+    });
+
+    gameScene.events.on('pause-changed', (paused: boolean) => {
+      this.pauseOverlay.setVisible(paused);
     });
 
     // Set initial state

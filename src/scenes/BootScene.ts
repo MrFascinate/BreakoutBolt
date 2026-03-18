@@ -49,8 +49,9 @@ export class BootScene extends Phaser.Scene {
     });
 
     // Cop (1536x1024, 6 frames at 256px wide, has header)
+    // Generous vertical crop to keep full body — cop is chunky
     this.addCroppedFrames('cop-sheet', 6, 256, 1024, {
-      cropX: 5, cropY: 130, cropW: 246, cropH: 760,
+      cropX: 5, cropY: 100, cropW: 246, cropH: 840,
     });
 
     // MAGA (1536x1024, 8 frames at 192px wide, has header)
@@ -59,8 +60,9 @@ export class BootScene extends Phaser.Scene {
     });
 
     // Hater (1536x1024, 4 cols x 3 rows = 12 frames at 384x341, no header)
+    // Minimal crop — keep nearly full frame so character body isn't cut off
     this.addGridCroppedFrames('hater-sheet', 4, 3, 384, 341, {
-      cropX: 40, cropY: 15, cropW: 304, cropH: 310,
+      cropX: 15, cropY: 5, cropW: 354, cropH: 330,
     });
 
     // Create animations
