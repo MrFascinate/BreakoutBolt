@@ -102,6 +102,7 @@ export class GameScene extends Phaser.Scene {
     const activeObstacles = this.obstaclePool.getActive();
     const groundY = getGroundY(this);
     const playerY = groundY - CONSTANTS.PLAYER_HEIGHT / 2;
+    const playerLane = this.player.getLane();
 
     for (const obstacle of activeObstacles) {
       const obstacleY = obstacle.getY();
@@ -115,7 +116,7 @@ export class GameScene extends Phaser.Scene {
         continue;
       }
 
-      // Only check collision for obstacles near the player vertically
+      // Only check obstacles near the player vertically
       if (Math.abs(obstacleY - playerY) > 80) {
         continue;
       }
@@ -123,17 +124,16 @@ export class GameScene extends Phaser.Scene {
       // Already handled this obstacle
       if (obstacle.wasDodged()) continue;
 
-      const collides = obstacle.checkCollision(playerBounds);
-
-      if (collides) {
-        // Mark dodged immediately so it never re-triggers
-        obstacle.markDodged();
-        if (!this.player.isInvincible()) {
-          this.onPlayerHit();
+      // Same lane = collision check (direct hit)
+      if (obstacle.getLane() === playerLane) {
+        if (obstacle.checkCollision(playerBounds)) {
+          obstacle.markDodged();
+          if (!this.player.isInvincible()) {
+            this.onPlayerHit();
+          }
         }
-        // No near-miss check if there was a collision
       } else if (!this.player.isInvincible() && obstacle.checkNearMiss(playerBounds)) {
-        // Only award near-miss if player is NOT invincible
+        // Different lane + close = near miss (you dodged just in time)
         obstacle.markDodged();
         this.scoreManager.addNearMissBonus();
         this.events.emit('near-miss');
