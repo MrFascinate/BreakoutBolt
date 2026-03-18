@@ -116,35 +116,37 @@ export class GameOverScene extends Phaser.Scene {
     const width = getGameWidth(this);
     const height = getGameHeight(this);
 
-    // Same flash + GO! transition as MainMenuScene
+    // Flash + GO! animation, then switch scene via delayedCall for reliability
     const flash = this.add.rectangle(width / 2, height / 2, width, height, 0xffffff, 0)
       .setDepth(100);
 
     this.tweens.add({
       targets: flash,
-      alpha: { from: 0, to: 1 },
-      duration: 150,
+      alpha: { from: 0, to: 0.9 },
+      duration: 120,
       yoyo: true,
-      onYoyo: () => {
-        const goText = this.add.text(width / 2, height / 2, 'GO!', {
-          fontSize: '72px',
-          fontFamily: 'Arial Black, Arial',
-          color: '#ff6b35',
-          stroke: '#000000',
-          strokeThickness: 8,
-        }).setOrigin(0.5).setDepth(101).setScale(0.5).setAlpha(0);
+    });
 
-        this.tweens.add({
-          targets: goText,
-          scale: 1.5,
-          alpha: { from: 1, to: 0 },
-          duration: 500,
-          ease: 'Power2',
-          onComplete: () => {
-            this.scene.start('GameScene');
-          },
-        });
-      },
+    const goText = this.add.text(width / 2, height / 2, 'GO!', {
+      fontSize: '72px',
+      fontFamily: 'Arial Black, Arial',
+      color: '#ff6b35',
+      stroke: '#000000',
+      strokeThickness: 8,
+    }).setOrigin(0.5).setDepth(101).setScale(0.3).setAlpha(0);
+
+    this.tweens.add({
+      targets: goText,
+      scale: 1.5,
+      alpha: { from: 1, to: 0 },
+      delay: 100,
+      duration: 450,
+      ease: 'Power2',
+    });
+
+    // Scene switch via delayedCall — guaranteed to fire
+    this.time.delayedCall(600, () => {
+      this.scene.start('GameScene');
     });
   }
 }
