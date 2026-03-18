@@ -87,9 +87,15 @@ export class BootScene extends Phaser.Scene {
       repeat: -1,
     });
 
+    // Use only middle row (frames 4-7) for a smooth, consistent running cycle
     this.anims.create({
       key: 'hater-run-anim',
-      frames: this.buildFrameArray('hater-sheet', 12),
+      frames: [
+        { key: 'hater-sheet', frame: 4 },
+        { key: 'hater-sheet', frame: 5 },
+        { key: 'hater-sheet', frame: 6 },
+        { key: 'hater-sheet', frame: 7 },
+      ],
       frameRate: 10,
       repeat: -1,
     });

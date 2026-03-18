@@ -31,9 +31,9 @@ export class MainMenuScene extends Phaser.Scene {
     }
 
     // Invisible interactive play button — covers the baked-in PLAY button area
-    // The PLAY button in the image is a wide orange bar centered at ~59% down
+    // The PLAY button in the image is a wide orange bar centered at ~75% down
     const playBtn = this.add.rectangle(
-      width / 2, height * 0.593, width * 0.75, height * 0.06, 0x000000, 0
+      width / 2, height * 0.75, width * 0.75, height * 0.07, 0x000000, 0
     ).setInteractive({ useHandCursor: true }).setDepth(10);
 
     playBtn.on('pointerdown', () => this.startGame());

@@ -22,13 +22,13 @@ export class GameOverScene extends Phaser.Scene {
     bg.setDisplaySize(width, height);
 
     // --- Dynamic text overlays positioned to match the baked-in layout ---
-    // Image layout (1024x1536): GAME OVER ~5%, illustration ~10-33%,
-    // SCORE/HIGH SCORE labels ~37%, values ~42%, divider ~46%,
-    // LEVEL/DISTANCE labels ~48%, values ~52%, divider ~55%,
-    // PLAY AGAIN button ~60%, MAIN MENU button ~67%
+    // Image layout (1024x1536): GAME OVER ~3%, illustration ~5-38%,
+    // SCORE/HIGH SCORE labels ~44%, values ~48%, divider ~53%,
+    // LEVEL/DISTANCE labels ~56%, values ~60%, divider ~64%,
+    // PLAY AGAIN button ~75%, MAIN MENU button ~85%
 
-    // Score value — positioned over the "SCORE" area (~39% down)
-    this.add.text(width * 0.27, height * 0.395, `${score.toLocaleString()}`, {
+    // Score value — positioned over the "SCORE" area (~48% down)
+    this.add.text(width * 0.27, height * 0.48, `${score.toLocaleString()}`, {
       fontSize: '20px',
       fontFamily: 'Arial Black, Arial',
       color: '#ffffff',
@@ -37,7 +37,7 @@ export class GameOverScene extends Phaser.Scene {
     }).setOrigin(0.5).setDepth(2);
 
     // High score value
-    this.add.text(width * 0.73, height * 0.395, `${highScore.toLocaleString()}`, {
+    this.add.text(width * 0.73, height * 0.48, `${highScore.toLocaleString()}`, {
       fontSize: '20px',
       fontFamily: 'Arial Black, Arial',
       color: '#ffdd00',
@@ -47,7 +47,7 @@ export class GameOverScene extends Phaser.Scene {
 
     // New high score badge
     if (isNewHighScore && score > 0) {
-      const badge = this.add.text(width / 2, height * 0.355, 'NEW HIGH SCORE!', {
+      const badge = this.add.text(width / 2, height * 0.44, 'NEW HIGH SCORE!', {
         fontSize: '14px',
         fontFamily: 'Arial Black, Arial',
         color: '#ffdd00',
@@ -66,8 +66,8 @@ export class GameOverScene extends Phaser.Scene {
       });
     }
 
-    // Level value — positioned over the "LEVEL" area (~49% down)
-    this.add.text(width * 0.27, height * 0.49, `${data.level ?? 1}`, {
+    // Level value — positioned over the "LEVEL" area (~60% down)
+    this.add.text(width * 0.27, height * 0.60, `${data.level ?? 1}`, {
       fontSize: '22px',
       fontFamily: 'Arial Black, Arial',
       color: '#ff6b35',
@@ -76,7 +76,7 @@ export class GameOverScene extends Phaser.Scene {
     }).setOrigin(0.5).setDepth(2);
 
     // Distance value
-    this.add.text(width * 0.73, height * 0.49, `${data.distance ?? '0.00 km'}`, {
+    this.add.text(width * 0.73, height * 0.60, `${data.distance ?? '0.00 km'}`, {
       fontSize: '16px',
       fontFamily: 'Arial Black, Arial',
       color: '#d4a574',
@@ -84,16 +84,16 @@ export class GameOverScene extends Phaser.Scene {
       strokeThickness: 3,
     }).setOrigin(0.5).setDepth(2);
 
-    // PLAY AGAIN button — large hit area over the baked-in orange button (~60%)
+    // PLAY AGAIN button — large hit area over the baked-in orange button (~75%)
     const retryBtn = this.add.rectangle(
-      width / 2, height * 0.597, width * 0.75, height * 0.06, 0x000000, 0
+      width / 2, height * 0.75, width * 0.75, height * 0.07, 0x000000, 0
     ).setInteractive({ useHandCursor: true }).setDepth(10);
 
     retryBtn.on('pointerdown', () => this.startGame());
 
-    // MAIN MENU button — hit area over the baked-in dark button (~68%)
+    // MAIN MENU button — hit area over the baked-in dark button (~85%)
     const menuBtn = this.add.rectangle(
-      width / 2, height * 0.677, width * 0.75, height * 0.055, 0x000000, 0
+      width / 2, height * 0.85, width * 0.75, height * 0.06, 0x000000, 0
     ).setInteractive({ useHandCursor: true }).setDepth(10);
 
     menuBtn.on('pointerdown', () => {
