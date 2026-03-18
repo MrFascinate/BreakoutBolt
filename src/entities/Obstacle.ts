@@ -1,9 +1,21 @@
 import { ObstacleConfig, ObstacleType } from '../config/Constants';
 import { getGroundY, getLanePositions } from '../utils/DeviceUtils';
 
+const SPRITE_KEYS: Record<ObstacleType, string> = {
+  cop: 'cop-run',
+  maga: 'maga-run',
+  hater: 'hater-run',
+};
+
+const ANIM_KEYS: Record<ObstacleType, string> = {
+  cop: 'cop-run-anim',
+  maga: 'maga-run-anim',
+  hater: 'hater-run-anim',
+};
+
 export class Obstacle {
   private scene: Phaser.Scene;
-  private sprite: Phaser.GameObjects.Rectangle;
+  private sprite: Phaser.GameObjects.Sprite;
   private config: ObstacleConfig;
   private lane: number;
   private active = false;
@@ -17,7 +29,8 @@ export class Obstacle {
     this.groundY = getGroundY(scene);
     this.config = null!;
     this.lane = 1;
-    this.sprite = scene.add.rectangle(0, -100, 50, 60, 0xff0000)
+    // Create with a default sprite key; will be updated on spawn
+    this.sprite = scene.add.sprite(0, -100, 'cop-run')
       .setDepth(4)
       .setVisible(false);
   }
@@ -30,10 +43,16 @@ export class Obstacle {
     this.hasZigzagged = false;
 
     const lanes = getLanePositions(this.scene);
+
+    // Switch to the correct spritesheet and animation for this obstacle type
+    const spriteKey = SPRITE_KEYS[config.type];
+    const animKey = ANIM_KEYS[config.type];
+
+    this.sprite.setTexture(spriteKey);
     this.sprite.setPosition(lanes[lane], startY);
-    this.sprite.setSize(config.width, config.height);
-    this.sprite.setFillStyle(config.color);
+    this.sprite.setDisplaySize(config.width, config.height);
     this.sprite.setVisible(true);
+    this.sprite.play(animKey);
 
     // Hater zigzag behavior
     if (config.zigzag && !this.zigzagTimer) {
@@ -128,6 +147,7 @@ export class Obstacle {
     this.active = false;
     this.sprite.setVisible(false);
     this.sprite.setPosition(0, -100);
+    this.sprite.stop();
     this.zigzagTimer?.destroy();
     this.zigzagTimer = undefined;
   }
@@ -148,7 +168,7 @@ export class Obstacle {
     return this.sprite.y;
   }
 
-  getSprite(): Phaser.GameObjects.Rectangle {
+  getSprite(): Phaser.GameObjects.Sprite {
     return this.sprite;
   }
 

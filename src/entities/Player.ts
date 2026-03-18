@@ -5,7 +5,7 @@ export type PlayerState = 'running' | 'hit' | 'invincible';
 
 export class Player {
   private scene: Phaser.Scene;
-  private sprite: Phaser.GameObjects.Rectangle;
+  private sprite: Phaser.GameObjects.Sprite;
   private currentLane = 1;
   private state: PlayerState = 'running';
   private invincible = false;
@@ -17,13 +17,15 @@ export class Player {
     const lanes = getLanePositions(scene);
     this.groundY = getGroundY(scene);
 
-    this.sprite = scene.add.rectangle(
+    // Animated protagonist sprite
+    this.sprite = scene.add.sprite(
       lanes[1],
       this.groundY - CONSTANTS.PLAYER_HEIGHT / 2,
-      CONSTANTS.PLAYER_WIDTH,
-      CONSTANTS.PLAYER_HEIGHT,
-      0xff6b35
-    ).setDepth(5);
+      'protagonist-run'
+    )
+      .setDepth(5)
+      .setDisplaySize(CONSTANTS.PLAYER_WIDTH, CONSTANTS.PLAYER_HEIGHT)
+      .play('protagonist-run-anim');
   }
 
   switchLane(direction: 'left' | 'right'): void {
@@ -46,10 +48,10 @@ export class Player {
     this.state = 'hit';
     this.invincible = true;
 
-    // Flash red
-    this.sprite.setFillStyle(0xff2222);
+    // Flash red tint
+    this.sprite.setTint(0xff2222);
     this.scene.time.delayedCall(100, () => {
-      this.sprite.setFillStyle(0xff6b35);
+      this.sprite.clearTint();
     });
 
     // Start invincibility flash
@@ -76,14 +78,14 @@ export class Player {
 
   getBounds(): Phaser.Geom.Rectangle {
     return new Phaser.Geom.Rectangle(
-      this.sprite.x - this.sprite.width / 2,
-      this.sprite.y - this.sprite.height / 2,
-      this.sprite.width,
-      this.sprite.height
+      this.sprite.x - CONSTANTS.PLAYER_WIDTH / 2,
+      this.sprite.y - CONSTANTS.PLAYER_HEIGHT / 2,
+      CONSTANTS.PLAYER_WIDTH,
+      CONSTANTS.PLAYER_HEIGHT
     );
   }
 
-  getSprite(): Phaser.GameObjects.Rectangle {
+  getSprite(): Phaser.GameObjects.Sprite {
     return this.sprite;
   }
 
