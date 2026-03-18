@@ -37,7 +37,12 @@ export class BootScene extends Phaser.Scene {
     this.load.image('protagonist-sheet', 'characters/spritesheet_protagonist_running.png');
     this.load.image('cop-sheet', 'characters/spritesheet_cop_running.png');
     this.load.image('maga-sheet', 'characters/spritesheet_maga_running.png');
-    this.load.image('hater-sheet', 'characters/spritesheet_hater_running.png');
+
+    // Hater: load as native spritesheet — 4 cols x 3 rows, clean 384x341 cells
+    this.load.spritesheet('hater-sheet', 'characters/spritesheet_hater_running.png', {
+      frameWidth: 384,
+      frameHeight: 341,
+    });
   }
 
   create(): void {
@@ -59,11 +64,7 @@ export class BootScene extends Phaser.Scene {
       cropX: 5, cropY: 130, cropW: 182, cropH: 760,
     });
 
-    // Hater (1536x1024, 4 cols x 3 rows = 12 frames at 384x341, no header)
-    // Minimal crop — keep nearly full frame so character body isn't cut off
-    this.addGridCroppedFrames('hater-sheet', 4, 3, 384, 341, {
-      cropX: 15, cropY: 5, cropW: 354, cropH: 330,
-    });
+    // Hater frames are loaded natively via this.load.spritesheet (no manual crop needed)
 
     // Create animations
     this.anims.create({
@@ -87,15 +88,10 @@ export class BootScene extends Phaser.Scene {
       repeat: -1,
     });
 
-    // Use only middle row (frames 4-7) for a smooth, consistent running cycle
+    // Hater: use all 12 frames from the native spritesheet for a full running cycle
     this.anims.create({
       key: 'hater-run-anim',
-      frames: [
-        { key: 'hater-sheet', frame: 4 },
-        { key: 'hater-sheet', frame: 5 },
-        { key: 'hater-sheet', frame: 6 },
-        { key: 'hater-sheet', frame: 7 },
-      ],
+      frames: this.anims.generateFrameNumbers('hater-sheet', { start: 0, end: 11 }),
       frameRate: 10,
       repeat: -1,
     });
