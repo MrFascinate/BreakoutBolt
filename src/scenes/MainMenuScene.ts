@@ -45,11 +45,47 @@ export class MainMenuScene extends Phaser.Scene {
       this.scene.start('GameScene');
     });
 
-    // Controls hint
-    this.add.text(width / 2, height * 0.78, 'Swipe or Arrow Keys to move\nSwipe Up / Tap to jump\nSwipe Down to slide', {
-      fontSize: '14px',
+    // Controls section
+    this.add.text(width / 2, height * 0.72, '— CONTROLS —', {
+      fontSize: '16px',
+      fontFamily: 'Arial Black, Arial',
+      color: '#00cc44',
+      align: 'center',
+    }).setOrigin(0.5);
+
+    const controlLines = [
+      ['Move Left', 'Swipe Left  /  \u2190'],
+      ['Move Right', 'Swipe Right  /  \u2192'],
+      ['Jump', 'Swipe Up or Tap  /  \u2191'],
+      ['Slide', 'Swipe Down  /  \u2193 or S'],
+    ];
+
+    const startY = height * 0.77;
+    const lineHeight = 22;
+    const colLeft = width / 2 - 10;
+    const colRight = width / 2 + 10;
+
+    controlLines.forEach((line, i) => {
+      const y = startY + i * lineHeight;
+      this.add.text(colLeft, y, line[0], {
+        fontSize: '13px',
+        fontFamily: 'Arial',
+        color: '#ffffff',
+        align: 'right',
+      }).setOrigin(1, 0.5);
+
+      this.add.text(colRight, y, line[1], {
+        fontSize: '13px',
+        fontFamily: 'Arial',
+        color: '#aaaaaa',
+        align: 'left',
+      }).setOrigin(0, 0.5);
+    });
+
+    this.add.text(width / 2, startY + controlLines.length * lineHeight + 14, 'Dodge cops, MAGA, and haters. Don\'t get caught!', {
+      fontSize: '12px',
       fontFamily: 'Arial',
-      color: '#cccccc',
+      color: '#888888',
       align: 'center',
     }).setOrigin(0.5);
 
