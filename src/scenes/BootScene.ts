@@ -33,58 +33,109 @@ export class BootScene extends Phaser.Scene {
     // Street background
     this.load.image('street-bg', 'background/game_background.png');
 
-    // Character spritesheets
-    this.load.spritesheet('protagonist-run', 'characters/spritesheet_protagonist_running.png', {
-      frameWidth: 256,
-      frameHeight: 1024,
-    });
-
-    this.load.spritesheet('cop-run', 'characters/spritesheet_cop_running.png', {
-      frameWidth: 256,
-      frameHeight: 1024,
-    });
-
-    this.load.spritesheet('maga-run', 'characters/spritesheet_maga_running.png', {
-      frameWidth: 192,
-      frameHeight: 1024,
-    });
-
-    this.load.spritesheet('hater-run', 'characters/spritesheet_hater_running.png', {
-      frameWidth: 384,
-      frameHeight: 341,
-    });
+    // Load character spritesheets as plain images so we can define cropped frames
+    this.load.image('protagonist-sheet', 'characters/spritesheet_protagonist_running.png');
+    this.load.image('cop-sheet', 'characters/spritesheet_cop_running.png');
+    this.load.image('maga-sheet', 'characters/spritesheet_maga_running.png');
+    this.load.image('hater-sheet', 'characters/spritesheet_hater_running.png');
   }
 
   create(): void {
-    // Create animations for all characters
+    // Define cropped frames for each character spritesheet, excluding headers and dead space
+
+    // Protagonist (1536x1024, 6 frames at 256px wide, has "SPRITESHEET:" header)
+    this.addCroppedFrames('protagonist-sheet', 6, 256, 1024, {
+      cropX: 20, cropY: 200, cropW: 216, cropH: 620,
+    });
+
+    // Cop (1536x1024, 6 frames at 256px wide, has header)
+    this.addCroppedFrames('cop-sheet', 6, 256, 1024, {
+      cropX: 5, cropY: 130, cropW: 246, cropH: 760,
+    });
+
+    // MAGA (1536x1024, 8 frames at 192px wide, has header)
+    this.addCroppedFrames('maga-sheet', 8, 192, 1024, {
+      cropX: 5, cropY: 130, cropW: 182, cropH: 760,
+    });
+
+    // Hater (1536x1024, 4 cols x 3 rows = 12 frames at 384x341, no header)
+    this.addGridCroppedFrames('hater-sheet', 4, 3, 384, 341, {
+      cropX: 40, cropY: 15, cropW: 304, cropH: 310,
+    });
+
+    // Create animations
     this.anims.create({
       key: 'protagonist-run-anim',
-      frames: this.anims.generateFrameNumbers('protagonist-run', { start: 0, end: 5 }),
+      frames: this.buildFrameArray('protagonist-sheet', 6),
       frameRate: 10,
       repeat: -1,
     });
 
     this.anims.create({
       key: 'cop-run-anim',
-      frames: this.anims.generateFrameNumbers('cop-run', { start: 0, end: 5 }),
+      frames: this.buildFrameArray('cop-sheet', 6),
       frameRate: 10,
       repeat: -1,
     });
 
     this.anims.create({
       key: 'maga-run-anim',
-      frames: this.anims.generateFrameNumbers('maga-run', { start: 0, end: 7 }),
+      frames: this.buildFrameArray('maga-sheet', 8),
       frameRate: 10,
       repeat: -1,
     });
 
     this.anims.create({
       key: 'hater-run-anim',
-      frames: this.anims.generateFrameNumbers('hater-run', { start: 0, end: 11 }),
+      frames: this.buildFrameArray('hater-sheet', 12),
       frameRate: 10,
       repeat: -1,
     });
 
     this.scene.start('MainMenuScene');
+  }
+
+  /** Add cropped frames from a single-row spritesheet */
+  private addCroppedFrames(
+    key: string,
+    frameCount: number,
+    frameW: number,
+    _frameH: number,
+    crop: { cropX: number; cropY: number; cropW: number; cropH: number }
+  ): void {
+    const tex = this.textures.get(key);
+    for (let i = 0; i < frameCount; i++) {
+      tex.add(i, 0, i * frameW + crop.cropX, crop.cropY, crop.cropW, crop.cropH);
+    }
+  }
+
+  /** Add cropped frames from a grid spritesheet (cols x rows) */
+  private addGridCroppedFrames(
+    key: string,
+    cols: number,
+    rows: number,
+    frameW: number,
+    frameH: number,
+    crop: { cropX: number; cropY: number; cropW: number; cropH: number }
+  ): void {
+    const tex = this.textures.get(key);
+    let frameIndex = 0;
+    for (let row = 0; row < rows; row++) {
+      for (let col = 0; col < cols; col++) {
+        tex.add(
+          frameIndex,
+          0,
+          col * frameW + crop.cropX,
+          row * frameH + crop.cropY,
+          crop.cropW,
+          crop.cropH
+        );
+        frameIndex++;
+      }
+    }
+  }
+
+  private buildFrameArray(key: string, count: number): Phaser.Types.Animations.AnimationFrame[] {
+    return Array.from({ length: count }, (_, i) => ({ key, frame: i }));
   }
 }

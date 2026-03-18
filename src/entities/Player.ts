@@ -17,14 +17,14 @@ export class Player {
     const lanes = getLanePositions(scene);
     this.groundY = getGroundY(scene);
 
-    // Animated protagonist sprite
+    // Animated protagonist sprite — display size is larger than collision box
     this.sprite = scene.add.sprite(
       lanes[1],
       this.groundY - CONSTANTS.PLAYER_HEIGHT / 2,
-      'protagonist-run'
+      'protagonist-sheet', 0
     )
       .setDepth(5)
-      .setDisplaySize(CONSTANTS.PLAYER_WIDTH, CONSTANTS.PLAYER_HEIGHT)
+      .setDisplaySize(80, 110)
       .play('protagonist-run-anim');
   }
 

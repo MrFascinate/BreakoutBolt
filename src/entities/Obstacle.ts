@@ -2,15 +2,22 @@ import { ObstacleConfig, ObstacleType } from '../config/Constants';
 import { getGroundY, getLanePositions } from '../utils/DeviceUtils';
 
 const SPRITE_KEYS: Record<ObstacleType, string> = {
-  cop: 'cop-run',
-  maga: 'maga-run',
-  hater: 'hater-run',
+  cop: 'cop-sheet',
+  maga: 'maga-sheet',
+  hater: 'hater-sheet',
 };
 
 const ANIM_KEYS: Record<ObstacleType, string> = {
   cop: 'cop-run-anim',
   maga: 'maga-run-anim',
   hater: 'hater-run-anim',
+};
+
+// Display sizes per type — larger than collision boxes for visibility
+const DISPLAY_SIZES: Record<ObstacleType, { w: number; h: number }> = {
+  cop: { w: 85, h: 115 },
+  maga: { w: 80, h: 110 },
+  hater: { w: 75, h: 100 },
 };
 
 export class Obstacle {
@@ -30,7 +37,7 @@ export class Obstacle {
     this.config = null!;
     this.lane = 1;
     // Create with a default sprite key; will be updated on spawn
-    this.sprite = scene.add.sprite(0, -100, 'cop-run')
+    this.sprite = scene.add.sprite(0, -100, 'cop-sheet', 0)
       .setDepth(4)
       .setVisible(false);
   }
@@ -48,9 +55,10 @@ export class Obstacle {
     const spriteKey = SPRITE_KEYS[config.type];
     const animKey = ANIM_KEYS[config.type];
 
+    const display = DISPLAY_SIZES[config.type];
     this.sprite.setTexture(spriteKey);
     this.sprite.setPosition(lanes[lane], startY);
-    this.sprite.setDisplaySize(config.width, config.height);
+    this.sprite.setDisplaySize(display.w, display.h);
     this.sprite.setVisible(true);
     this.sprite.play(animKey);
 
