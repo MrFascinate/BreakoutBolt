@@ -7,10 +7,10 @@ const SPRITE_KEYS: Record<ObstacleType, string> = {
   hater: 'hater-sheet',
 };
 
-const ANIM_KEYS: Record<ObstacleType, string> = {
+const ANIM_KEYS: Record<ObstacleType, string | null> = {
   cop: 'cop-run-anim',
   maga: 'maga-run-anim',
-  hater: 'hater-run-anim',
+  hater: null, // static image until spritesheet is fixed
 };
 
 // Display sizes per type — larger than collision boxes for visibility
@@ -56,11 +56,15 @@ export class Obstacle {
     const animKey = ANIM_KEYS[config.type];
 
     const display = DISPLAY_SIZES[config.type];
-    this.sprite.setTexture(spriteKey);
+    this.sprite.setTexture(spriteKey, 0);
     this.sprite.setPosition(lanes[lane], startY);
     this.sprite.setDisplaySize(display.w, display.h);
     this.sprite.setVisible(true);
-    this.sprite.play(animKey);
+    if (animKey) {
+      this.sprite.play(animKey);
+    } else {
+      this.sprite.stop();
+    }
 
     // Hater zigzag behavior
     if (config.zigzag && !this.zigzagTimer) {
