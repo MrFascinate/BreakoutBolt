@@ -18,17 +18,19 @@ export class GameScene extends Phaser.Scene {
   private currentSpeed: number = CONSTANTS.INITIAL_SPEED;
   private lives = CONSTANTS.LIVES;
   private gameOver = false;
-  private speedTimer = 0;
+  private level = 1;
+  private distanceForNextLevel = CONSTANTS.LEVEL_DISTANCE;
 
   constructor() {
     super({ key: 'GameScene' });
   }
 
   create(): void {
+    this.level = 1;
     this.currentSpeed = CONSTANTS.INITIAL_SPEED;
     this.lives = CONSTANTS.LIVES;
     this.gameOver = false;
-    this.speedTimer = 0;
+    this.distanceForNextLevel = CONSTANTS.LEVEL_DISTANCE;
 
     this.background = new ScrollingBackground(this);
     this.player = new Player(this);
@@ -41,10 +43,11 @@ export class GameScene extends Phaser.Scene {
     if (this.scene.isActive('UIScene')) {
       this.scene.stop('UIScene');
     }
-    this.scene.launch('UIScene', { lives: this.lives });
+    this.scene.launch('UIScene', { lives: this.lives, level: this.level });
 
     // Emit initial state
     this.events.emit('lives-changed', this.lives);
+    this.events.emit('level-changed', this.level);
   }
 
   private handleAction(action: GameAction): void {
@@ -58,22 +61,15 @@ export class GameScene extends Phaser.Scene {
   update(_time: number, delta: number): void {
     if (this.gameOver) return;
 
-    // Speed scaling — gets faster every interval
-    this.speedTimer += delta;
-    if (this.speedTimer >= CONSTANTS.SPEED_INCREASE_INTERVAL) {
-      this.speedTimer = 0;
-      this.currentSpeed = Math.min(
-        this.currentSpeed + CONSTANTS.SPEED_INCREMENT,
-        CONSTANTS.MAX_SPEED
-      );
-    }
-
     this.background.update(this.currentSpeed);
     this.obstaclePool.update(this.currentSpeed, delta);
     this.spawner.update(this.currentSpeed, delta);
 
     // Distance scoring
     this.scoreManager.addDistance(this.currentSpeed * (delta / 1000));
+
+    // Level progression
+    this.checkLevelUp();
 
     // Collision detection
     this.checkCollisions();
@@ -83,6 +79,22 @@ export class GameScene extends Phaser.Scene {
       score: this.scoreManager.getScore(),
       distance: this.scoreManager.getDistanceFormatted(),
     });
+  }
+
+  private checkLevelUp(): void {
+    if (this.level >= CONSTANTS.MAX_LEVEL) return;
+
+    if (this.scoreManager.getDistance() >= this.distanceForNextLevel) {
+      this.level++;
+      this.distanceForNextLevel += CONSTANTS.LEVEL_DISTANCE;
+
+      // Speed increases with each level
+      const speedRange = CONSTANTS.MAX_SPEED - CONSTANTS.INITIAL_SPEED;
+      const levelRatio = (this.level - 1) / (CONSTANTS.MAX_LEVEL - 1);
+      this.currentSpeed = CONSTANTS.INITIAL_SPEED + speedRange * levelRatio;
+
+      this.events.emit('level-changed', this.level);
+    }
   }
 
   private checkCollisions(): void {
@@ -111,12 +123,17 @@ export class GameScene extends Phaser.Scene {
       // Already handled this obstacle
       if (obstacle.wasDodged()) continue;
 
-      if (obstacle.checkCollision(playerBounds)) {
+      const collides = obstacle.checkCollision(playerBounds);
+
+      if (collides) {
+        // Mark dodged immediately so it never re-triggers
+        obstacle.markDodged();
         if (!this.player.isInvincible()) {
-          obstacle.markDodged();
           this.onPlayerHit();
         }
-      } else if (obstacle.checkNearMiss(playerBounds)) {
+        // No near-miss check if there was a collision
+      } else if (!this.player.isInvincible() && obstacle.checkNearMiss(playerBounds)) {
+        // Only award near-miss if player is NOT invincible
         obstacle.markDodged();
         this.scoreManager.addNearMissBonus();
         this.events.emit('near-miss');
@@ -147,7 +164,11 @@ export class GameScene extends Phaser.Scene {
       const score = this.scoreManager.getScore();
       const distance = this.scoreManager.getDistanceFormatted();
       this.scene.stop('UIScene');
-      this.scene.start('GameOverScene', { score, distance });
+      this.scene.start('GameOverScene', {
+        score,
+        distance,
+        level: this.level,
+      });
     });
   }
 

@@ -6,7 +6,7 @@ export class GameOverScene extends Phaser.Scene {
     super({ key: 'GameOverScene' });
   }
 
-  create(data: { score: number; distance: string }): void {
+  create(data: { score: number; distance: string; level: number }): void {
     const width = getGameWidth(this);
     const height = getGameHeight(this);
 
@@ -17,7 +17,7 @@ export class GameOverScene extends Phaser.Scene {
     this.add.rectangle(width / 2, 0, width, 6, 0xff3333).setOrigin(0.5, 0);
 
     // Game Over text
-    this.add.text(width / 2, height * 0.18, 'GAME OVER', {
+    this.add.text(width / 2, height * 0.15, 'GAME OVER', {
       fontSize: '44px',
       fontFamily: 'Arial Black, Arial',
       color: '#ff3333',
@@ -26,42 +26,56 @@ export class GameOverScene extends Phaser.Scene {
     }).setOrigin(0.5);
 
     // Divider
-    this.add.rectangle(width / 2, height * 0.27, 120, 2, 0x333344);
+    this.add.rectangle(width / 2, height * 0.23, 120, 2, 0x333344);
 
-    // Score
-    this.add.text(width / 2, height * 0.34, 'SCORE', {
+    // Level reached
+    this.add.text(width / 2, height * 0.28, 'LEVEL', {
       fontSize: '14px',
       fontFamily: 'Arial',
       color: '#888899',
       letterSpacing: 4,
     }).setOrigin(0.5);
 
-    this.add.text(width / 2, height * 0.40, `${(data.score ?? 0).toLocaleString()}`, {
+    this.add.text(width / 2, height * 0.33, `${data.level ?? 1}`, {
       fontSize: '36px',
+      fontFamily: 'Arial Black, Arial',
+      color: '#ff6b35',
+    }).setOrigin(0.5);
+
+    // Score
+    this.add.text(width / 2, height * 0.40, 'SCORE', {
+      fontSize: '14px',
+      fontFamily: 'Arial',
+      color: '#888899',
+      letterSpacing: 4,
+    }).setOrigin(0.5);
+
+    this.add.text(width / 2, height * 0.45, `${(data.score ?? 0).toLocaleString()}`, {
+      fontSize: '32px',
       fontFamily: 'Arial Black, Arial',
       color: '#ffffff',
     }).setOrigin(0.5);
 
     // Distance
-    this.add.text(width / 2, height * 0.48, 'DISTANCE', {
+    this.add.text(width / 2, height * 0.52, 'DISTANCE', {
       fontSize: '14px',
       fontFamily: 'Arial',
       color: '#888899',
       letterSpacing: 4,
     }).setOrigin(0.5);
 
-    this.add.text(width / 2, height * 0.53, `${data.distance ?? '0.00 km'}`, {
-      fontSize: '24px',
+    this.add.text(width / 2, height * 0.56, `${data.distance ?? '0.00 km'}`, {
+      fontSize: '22px',
       fontFamily: 'Arial',
       color: '#d4a574',
     }).setOrigin(0.5);
 
     // Retry button
     const retryBtn = this.add.rectangle(
-      width / 2, height * 0.66, 220, 60, 0xff6b35
+      width / 2, height * 0.67, 220, 60, 0xff6b35
     ).setInteractive({ useHandCursor: true });
 
-    this.add.text(width / 2, height * 0.66, 'PLAY AGAIN', {
+    this.add.text(width / 2, height * 0.67, 'PLAY AGAIN', {
       fontSize: '24px',
       fontFamily: 'Arial Black, Arial',
       color: '#ffffff',
