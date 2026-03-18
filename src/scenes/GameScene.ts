@@ -39,6 +39,9 @@ export class GameScene extends Phaser.Scene {
     this.scoreManager = new ScoreManager();
     this.inputManager = new InputManager(this, (action) => this.handleAction(action));
 
+    // Clean up on shutdown so Play Again works correctly
+    this.events.once('shutdown', this.shutdown, this);
+
     // Launch UI scene in parallel
     if (this.scene.isActive('UIScene')) {
       this.scene.stop('UIScene');

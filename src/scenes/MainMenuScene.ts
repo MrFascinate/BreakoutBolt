@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { getGameWidth, getGameHeight } from '../utils/DeviceUtils';
+import { getHighScore } from '../utils/HighScore';
 
 export class MainMenuScene extends Phaser.Scene {
   constructor() {
@@ -49,6 +50,18 @@ export class MainMenuScene extends Phaser.Scene {
     playBtn.on('pointerdown', () => {
       this.scene.start('GameScene');
     });
+
+    // High score display
+    const highScore = getHighScore();
+    if (highScore > 0) {
+      this.add.text(width / 2, height * 0.46, `High Score: ${highScore.toLocaleString()}`, {
+        fontSize: '16px',
+        fontFamily: 'Arial Black, Arial',
+        color: '#ffdd00',
+        stroke: '#000000',
+        strokeThickness: 2,
+      }).setOrigin(0.5);
+    }
 
     // Controls section
     this.add.text(width / 2, height * 0.66, '— CONTROLS —', {

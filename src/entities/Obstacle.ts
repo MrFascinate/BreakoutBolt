@@ -46,6 +46,11 @@ export class Obstacle {
 
   private doZigzag(): void {
     if (!this.active || this.hasZigzagged) return;
+
+    // Only zigzag if still in the upper half of the screen — gives player time to react
+    const screenHeight = this.scene.cameras.main.height;
+    if (this.sprite.y > screenHeight * 0.45) return;
+
     this.hasZigzagged = true;
 
     const lanes = getLanePositions(this.scene);
