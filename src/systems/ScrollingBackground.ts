@@ -4,7 +4,6 @@ export class ScrollingBackground {
   private scene: Phaser.Scene;
   private groundTile!: Phaser.GameObjects.TileSprite;
   private skyGradient!: Phaser.GameObjects.Rectangle;
-  private laneLines: Phaser.GameObjects.TileSprite[] = [];
 
   constructor(scene: Phaser.Scene) {
     this.scene = scene;
@@ -41,26 +40,6 @@ export class ScrollingBackground {
     this.groundTile = this.scene.add.tileSprite(
       width / 2, groundY + 50, width, 100, 'ground-tile'
     ).setDepth(-1);
-
-    // Lane dividers — white dashed
-    if (!this.scene.textures.exists('lane-line')) {
-      const lineGfx = this.scene.make.graphics({ x: 0, y: 0 });
-      lineGfx.fillStyle(0xffffff, 0.6);
-      lineGfx.fillRect(0, 0, 3, 24);
-      lineGfx.generateTexture('lane-line', 3, 48);
-      lineGfx.destroy();
-    }
-
-    const laneWidth = Math.min(120, width / 4);
-    const centerX = width / 2;
-
-    for (let i = -1; i <= 1; i += 2) {
-      const lineX = centerX + i * (laneWidth / 2);
-      const line = this.scene.add.tileSprite(
-        lineX, groundY - 150, 3, 400, 'lane-line'
-      ).setDepth(-1);
-      this.laneLines.push(line);
-    }
   }
 
   private createBuildings(width: number, groundY: number): void {
@@ -93,8 +72,5 @@ export class ScrollingBackground {
   update(speed: number): void {
     const delta = speed * 0.016;
     this.groundTile.tilePositionY -= delta;
-    for (const line of this.laneLines) {
-      line.tilePositionY -= delta;
-    }
   }
 }

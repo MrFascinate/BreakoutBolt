@@ -1,20 +1,16 @@
 import { CONSTANTS } from '../config/Constants';
 import { getLanePositions, getGroundY } from '../utils/DeviceUtils';
 
-export type PlayerState = 'running' | 'jumping' | 'sliding' | 'hit' | 'invincible';
+export type PlayerState = 'running' | 'hit' | 'invincible';
 
 export class Player {
   private scene: Phaser.Scene;
   private sprite: Phaser.GameObjects.Rectangle;
   private currentLane = 1;
   private state: PlayerState = 'running';
-  private velocityY = 0;
-  private groundY: number;
-  private isGrounded = true;
-  private isSliding = false;
-  private slideTimer?: Phaser.Time.TimerEvent;
   private invincible = false;
   private flashTween?: Phaser.Tweens.Tween;
+  private groundY: number;
 
   constructor(scene: Phaser.Scene) {
     this.scene = scene;
@@ -42,33 +38,6 @@ export class Player {
       duration: CONSTANTS.LANE_SWITCH_DURATION,
       ease: 'Power2',
     });
-  }
-
-  jump(): void {
-    if (!this.isGrounded) return;
-    this.isGrounded = false;
-    this.velocityY = CONSTANTS.JUMP_VELOCITY;
-    this.state = 'jumping';
-  }
-
-  slide(): void {
-    if (!this.isGrounded || this.isSliding) return;
-    this.isSliding = true;
-    this.state = 'sliding';
-
-    this.sprite.setSize(CONSTANTS.PLAYER_WIDTH, CONSTANTS.PLAYER_HEIGHT / 2);
-    this.sprite.setY(this.groundY - CONSTANTS.PLAYER_HEIGHT / 4);
-
-    this.slideTimer = this.scene.time.delayedCall(400, () => {
-      this.endSlide();
-    });
-  }
-
-  private endSlide(): void {
-    this.isSliding = false;
-    this.state = 'running';
-    this.sprite.setSize(CONSTANTS.PLAYER_WIDTH, CONSTANTS.PLAYER_HEIGHT);
-    this.sprite.setY(this.groundY - CONSTANTS.PLAYER_HEIGHT / 2);
   }
 
   hit(): void {
@@ -105,21 +74,6 @@ export class Player {
     return this.invincible;
   }
 
-  update(delta: number): void {
-    if (!this.isGrounded) {
-      this.velocityY += CONSTANTS.GRAVITY * (delta / 1000);
-      this.sprite.y += this.velocityY * (delta / 1000);
-
-      const standingY = this.groundY - CONSTANTS.PLAYER_HEIGHT / 2;
-      if (this.sprite.y >= standingY) {
-        this.sprite.y = standingY;
-        this.velocityY = 0;
-        this.isGrounded = true;
-        this.state = 'running';
-      }
-    }
-  }
-
   getBounds(): Phaser.Geom.Rectangle {
     return new Phaser.Geom.Rectangle(
       this.sprite.x - this.sprite.width / 2,
@@ -141,16 +95,7 @@ export class Player {
     return this.state;
   }
 
-  getIsSliding(): boolean {
-    return this.isSliding;
-  }
-
-  getIsGrounded(): boolean {
-    return this.isGrounded;
-  }
-
   destroy(): void {
-    this.slideTimer?.destroy();
     this.flashTween?.destroy();
     this.sprite.destroy();
   }

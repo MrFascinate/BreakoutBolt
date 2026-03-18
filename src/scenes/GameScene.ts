@@ -50,26 +50,15 @@ export class GameScene extends Phaser.Scene {
   private handleAction(action: GameAction): void {
     if (this.gameOver) return;
 
-    switch (action) {
-      case 'left':
-        this.player.switchLane('left');
-        break;
-      case 'right':
-        this.player.switchLane('right');
-        break;
-      case 'jump':
-        this.player.jump();
-        break;
-      case 'slide':
-        this.player.slide();
-        break;
+    if (action === 'left' || action === 'right') {
+      this.player.switchLane(action);
     }
   }
 
   update(_time: number, delta: number): void {
     if (this.gameOver) return;
 
-    // Speed scaling
+    // Speed scaling — gets faster every interval
     this.speedTimer += delta;
     if (this.speedTimer >= CONSTANTS.SPEED_INCREASE_INTERVAL) {
       this.speedTimer = 0;
@@ -80,7 +69,6 @@ export class GameScene extends Phaser.Scene {
     }
 
     this.background.update(this.currentSpeed);
-    this.player.update(delta);
     this.obstaclePool.update(this.currentSpeed, delta);
     this.spawner.update(this.currentSpeed, delta);
 
@@ -125,7 +113,7 @@ export class GameScene extends Phaser.Scene {
 
       if (obstacle.checkCollision(playerBounds)) {
         if (!this.player.isInvincible()) {
-          obstacle.markDodged(); // Prevent dodge bonus for obstacles that hit you
+          obstacle.markDodged();
           this.onPlayerHit();
         }
       } else if (obstacle.checkNearMiss(playerBounds)) {

@@ -59,10 +59,8 @@ export class MainMenuScene extends Phaser.Scene {
     }).setOrigin(0.5);
 
     const controlLines = [
-      ['Move Left', 'Swipe Left  /  \u2190'],
-      ['Move Right', 'Swipe Right  /  \u2192'],
-      ['Jump', 'Swipe Up or Tap  /  \u2191'],
-      ['Slide', 'Swipe Down  /  \u2193 or S'],
+      ['Move Left', 'Swipe Left  /  \u2190 or A'],
+      ['Move Right', 'Swipe Right  /  \u2192 or D'],
     ];
 
     const startY = height * 0.71;

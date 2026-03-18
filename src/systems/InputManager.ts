@@ -1,6 +1,6 @@
 import { CONSTANTS } from '../config/Constants';
 
-export type GameAction = 'left' | 'right' | 'jump' | 'slide';
+export type GameAction = 'left' | 'right';
 
 export class InputManager {
   private scene: Phaser.Scene;
@@ -26,20 +26,11 @@ export class InputManager {
       if (!this.enabled) return;
 
       const dx = pointer.x - this.startX;
-      const dy = pointer.y - this.startY;
       const absDx = Math.abs(dx);
-      const absDy = Math.abs(dy);
 
-      if (absDx < CONSTANTS.SWIPE_THRESHOLD && absDy < CONSTANTS.SWIPE_THRESHOLD) {
-        this.actionCallback('jump');
-        return;
-      }
+      if (absDx < CONSTANTS.SWIPE_THRESHOLD) return;
 
-      if (absDx > absDy) {
-        this.actionCallback(dx > 0 ? 'right' : 'left');
-      } else {
-        this.actionCallback(dy < 0 ? 'jump' : 'slide');
-      }
+      this.actionCallback(dx > 0 ? 'right' : 'left');
     });
   }
 
@@ -53,14 +44,11 @@ export class InputManager {
     keyboard.on('keydown-RIGHT', () => {
       if (this.enabled) this.actionCallback('right');
     });
-    keyboard.on('keydown-UP', () => {
-      if (this.enabled) this.actionCallback('jump');
+    keyboard.on('keydown-A', () => {
+      if (this.enabled) this.actionCallback('left');
     });
-    keyboard.on('keydown-DOWN', () => {
-      if (this.enabled) this.actionCallback('slide');
-    });
-    keyboard.on('keydown-S', () => {
-      if (this.enabled) this.actionCallback('slide');
+    keyboard.on('keydown-D', () => {
+      if (this.enabled) this.actionCallback('right');
     });
   }
 
