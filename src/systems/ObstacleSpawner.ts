@@ -76,7 +76,7 @@ export class ObstacleSpawner {
 
   private pickObstacleType(): ObstacleType {
     // Never spawn same type 3 times in a row
-    const types: ObstacleType[] = ['cop', 'maga', 'hater'];
+    const types: ObstacleType[] = ['cop', 'maga', 'karen'];
 
     if (this.lastTypes.length >= 2 &&
         this.lastTypes[this.lastTypes.length - 1] === this.lastTypes[this.lastTypes.length - 2]) {

@@ -29,8 +29,8 @@ export const OBSTACLE_CONFIGS: Record<string, ObstacleConfig> = {
     speed: 100,
     zigzag: false,
   },
-  hater: {
-    type: 'hater',
+  karen: {
+    type: 'karen',
     spawnWeight: 15,
     color: 0xcc44ff,       // Bright purple
     width: 45,

@@ -4,20 +4,20 @@ import { getGroundY, getLanePositions } from '../utils/DeviceUtils';
 const SPRITE_KEYS: Record<ObstacleType, string> = {
   cop: 'cop-sheet',
   maga: 'maga-sheet',
-  hater: 'hater-sheet',
+  karen: 'karen-sheet',
 };
 
 const ANIM_KEYS: Record<ObstacleType, string | null> = {
   cop: 'cop-run-anim',
   maga: 'maga-run-anim',
-  hater: null, // static image until spritesheet is fixed
+  karen: null, // static image until spritesheet is fixed
 };
 
 // Display sizes per type — larger than collision boxes for visibility
 const DISPLAY_SIZES: Record<ObstacleType, { w: number; h: number }> = {
   cop: { w: 95, h: 170 },
   maga: { w: 85, h: 150 },
-  hater: { w: 85, h: 130 },
+  karen: { w: 85, h: 130 },
 };
 
 export class Obstacle {
@@ -66,7 +66,7 @@ export class Obstacle {
       this.sprite.stop();
     }
 
-    // Hater zigzag behavior
+    // Karen zigzag behavior
     if (config.zigzag && !this.zigzagTimer) {
       this.zigzagTimer = this.scene.time.delayedCall(
         600 + Math.random() * 400,

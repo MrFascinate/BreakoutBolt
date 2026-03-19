@@ -38,8 +38,8 @@ export class BootScene extends Phaser.Scene {
     this.load.image('cop-sheet', 'characters/spritesheet_cop_running.png');
     this.load.image('maga-sheet', 'characters/spritesheet_maga_running.png');
 
-    // Hater: load as spritesheet so Phaser handles frame slicing
-    this.load.spritesheet('hater-sheet', 'characters/spritesheet_hater_running.png', {
+    // Karen: load as spritesheet so Phaser handles frame slicing
+    this.load.spritesheet('karen-sheet', 'characters/spritesheet_karen_running.png', {
       frameWidth: 384,
       frameHeight: 341,
     });
@@ -64,7 +64,7 @@ export class BootScene extends Phaser.Scene {
       cropX: 5, cropY: 130, cropW: 182, cropH: 760,
     });
 
-    // Hater: frames handled by spritesheet loader, no manual crop needed
+    // Karen: frames handled by spritesheet loader, no manual crop needed
 
     // Create animations
     this.anims.create({
@@ -88,7 +88,7 @@ export class BootScene extends Phaser.Scene {
       repeat: -1,
     });
 
-    // Hater: static image, no animation until spritesheet is fixed
+    // Karen: static image, no animation until spritesheet is fixed
 
     this.scene.start('MainMenuScene');
   }
