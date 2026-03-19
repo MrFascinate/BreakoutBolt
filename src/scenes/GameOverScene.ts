@@ -84,18 +84,11 @@ export class GameOverScene extends Phaser.Scene {
       strokeThickness: 3,
     }).setOrigin(0.5).setDepth(2);
 
-    // Button zones (fraction of screen height)
-    const playMinY = height * 0.71;
-    const playMaxY = height * 0.79;
-    const menuMinY = height * 0.81;
-    const menuMaxY = height * 0.89;
-
-    // Scene-level tap detection — more reliable on mobile than invisible game objects
+    // Tap bottom half → play again, tap top half → main menu
     this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
-      const y = pointer.y;
-      if (y >= playMinY && y <= playMaxY) {
+      if (pointer.y >= height * 0.5) {
         this.startGame();
-      } else if (y >= menuMinY && y <= menuMaxY) {
+      } else {
         if (this.starting) return;
         this.starting = true;
         this.scene.start('MainMenuScene');
