@@ -22,23 +22,23 @@ export class GameOverScene extends Phaser.Scene {
     bg.setDisplaySize(width, height);
 
     // --- Dynamic text overlays positioned to match the baked-in layout ---
-    // Image layout (1024x1536): GAME OVER ~3%, illustration ~5-38%,
-    // SCORE/HIGH SCORE labels ~44%, values ~48%, divider ~53%,
-    // LEVEL/DISTANCE labels ~56%, values ~60%, divider ~64%,
-    // PLAY AGAIN button ~75%, MAIN MENU button ~85%
+    // Image layout (1024x1536): GAME OVER ~4%, illustration ~8-52%,
+    // SCORE label ~56%, HIGH SCORE label ~56%, values below labels ~60%,
+    // LEVEL label ~66%, DISTANCE label ~66%, values below labels ~70%,
+    // PLAY AGAIN button ~80%, MAIN MENU button ~90%
 
-    // Score value — positioned over the "SCORE" area (~48% down)
-    this.add.text(width * 0.27, height * 0.48, `${score.toLocaleString()}`, {
-      fontSize: '20px',
+    // Score value — below the "SCORE" label
+    this.add.text(width * 0.27, height * 0.61, `${score.toLocaleString()}`, {
+      fontSize: '22px',
       fontFamily: 'Arial Black, Arial',
       color: '#ffffff',
       stroke: '#000000',
       strokeThickness: 3,
     }).setOrigin(0.5).setDepth(2);
 
-    // High score value
-    this.add.text(width * 0.73, height * 0.48, `${highScore.toLocaleString()}`, {
-      fontSize: '20px',
+    // High score value — below the "HIGH SCORE" label
+    this.add.text(width * 0.73, height * 0.61, `${highScore.toLocaleString()}`, {
+      fontSize: '22px',
       fontFamily: 'Arial Black, Arial',
       color: '#ffdd00',
       stroke: '#000000',
@@ -47,7 +47,7 @@ export class GameOverScene extends Phaser.Scene {
 
     // New high score badge
     if (isNewHighScore && score > 0) {
-      const badge = this.add.text(width / 2, height * 0.44, 'NEW HIGH SCORE!', {
+      const badge = this.add.text(width / 2, height * 0.56, 'NEW HIGH SCORE!', {
         fontSize: '14px',
         fontFamily: 'Arial Black, Arial',
         color: '#ffdd00',
@@ -66,8 +66,8 @@ export class GameOverScene extends Phaser.Scene {
       });
     }
 
-    // Level value — positioned over the "LEVEL" area (~60% down)
-    this.add.text(width * 0.27, height * 0.60, `${data.level ?? 1}`, {
+    // Level value — below the "LEVEL" label
+    this.add.text(width * 0.27, height * 0.72, `${data.level ?? 1}`, {
       fontSize: '22px',
       fontFamily: 'Arial Black, Arial',
       color: '#ff6b35',
@@ -75,24 +75,29 @@ export class GameOverScene extends Phaser.Scene {
       strokeThickness: 3,
     }).setOrigin(0.5).setDepth(2);
 
-    // Distance value
-    this.add.text(width * 0.73, height * 0.60, `${data.distance ?? '0.00 mi'}`, {
-      fontSize: '16px',
+    // Distance value — below the "DISTANCE" label
+    this.add.text(width * 0.73, height * 0.72, `${data.distance ?? '0.00 mi'}`, {
+      fontSize: '18px',
       fontFamily: 'Arial Black, Arial',
       color: '#d4a574',
       stroke: '#000000',
       strokeThickness: 3,
     }).setOrigin(0.5).setDepth(2);
 
-    // Tap bottom half → play again, tap top half → main menu
-    this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
-      if (pointer.y >= height * 0.5) {
-        this.startGame();
-      } else {
-        if (this.starting) return;
-        this.starting = true;
-        this.scene.start('MainMenuScene');
-      }
+    // PLAY AGAIN button zone (~76-84% of height)
+    const playAgainZone = this.add.zone(width / 2, height * 0.80, width * 0.7, height * 0.07)
+      .setInteractive()
+      .setDepth(5);
+    playAgainZone.on('pointerdown', () => this.startGame());
+
+    // MAIN MENU button zone (~86-94% of height)
+    const mainMenuZone = this.add.zone(width / 2, height * 0.90, width * 0.7, height * 0.07)
+      .setInteractive()
+      .setDepth(5);
+    mainMenuZone.on('pointerdown', () => {
+      if (this.starting) return;
+      this.starting = true;
+      this.scene.start('MainMenuScene');
     });
 
     // Keyboard shortcuts
