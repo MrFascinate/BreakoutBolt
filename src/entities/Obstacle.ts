@@ -10,7 +10,7 @@ const SPRITE_KEYS: Record<ObstacleType, string> = {
 const ANIM_KEYS: Record<ObstacleType, string | null> = {
   cop: 'cop-run-anim',
   maga: 'maga-run-anim',
-  karen: 'karen-run-anim',
+  karen: null,
 };
 
 // Display sizes per type — larger than collision boxes for visibility

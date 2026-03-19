@@ -87,12 +87,7 @@ export class BootScene extends Phaser.Scene {
       repeat: -1,
     });
 
-    this.anims.create({
-      key: 'karen-run-anim',
-      frames: this.buildFrameArray('karen-sheet', 6),
-      frameRate: 10,
-      repeat: -1,
-    });
+    // Karen: static frame (no animation)
 
     this.scene.start('MainMenuScene');
   }
