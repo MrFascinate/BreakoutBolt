@@ -30,13 +30,14 @@ export class MainMenuScene extends Phaser.Scene {
       }).setOrigin(0.5).setDepth(2);
     }
 
-    // Invisible interactive play button — covers the baked-in PLAY button area
-    // The PLAY button in the image is a wide orange bar centered at ~80% down
-    const playBtn = this.add.rectangle(
-      width / 2, height * 0.80, width * 0.75, height * 0.07, 0x000000, 0
-    ).setInteractive({ useHandCursor: true }).setDepth(10);
-
-    playBtn.on('pointerup', () => this.startGame());
+    // Scene-level tap detection — more reliable on mobile than invisible game objects
+    const playMinY = height * 0.76;
+    const playMaxY = height * 0.84;
+    this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
+      if (pointer.y >= playMinY && pointer.y <= playMaxY) {
+        this.startGame();
+      }
+    });
 
     // Keyboard shortcut
     this.input.keyboard?.on('keydown-SPACE', () => this.startGame());

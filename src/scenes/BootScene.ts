@@ -38,8 +38,11 @@ export class BootScene extends Phaser.Scene {
     this.load.image('cop-sheet', 'characters/spritesheet_cop_running.png');
     this.load.image('maga-sheet', 'characters/spritesheet_maga_running.png');
 
-    // Hater: load as plain image — static display until spritesheet is fixed
-    this.load.image('hater-sheet', 'characters/spritesheet_hater_running.png');
+    // Hater: load as spritesheet so Phaser handles frame slicing
+    this.load.spritesheet('hater-sheet', 'characters/spritesheet_hater_running.png', {
+      frameWidth: 384,
+      frameHeight: 341,
+    });
   }
 
   create(): void {
@@ -61,9 +64,7 @@ export class BootScene extends Phaser.Scene {
       cropX: 5, cropY: 130, cropW: 182, cropH: 760,
     });
 
-    // Hater: single static frame — first cell of the 4x3 grid (384x341)
-    const haterTex = this.textures.get('hater-sheet');
-    haterTex.add(0, 0, 0, 0, 384, 341);
+    // Hater: frames handled by spritesheet loader, no manual crop needed
 
     // Create animations
     this.anims.create({

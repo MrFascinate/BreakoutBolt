@@ -84,22 +84,22 @@ export class GameOverScene extends Phaser.Scene {
       strokeThickness: 3,
     }).setOrigin(0.5).setDepth(2);
 
-    // PLAY AGAIN button — large hit area over the baked-in orange button (~75%)
-    const retryBtn = this.add.rectangle(
-      width / 2, height * 0.75, width * 0.75, height * 0.07, 0x000000, 0
-    ).setInteractive({ useHandCursor: true }).setDepth(10);
+    // Button zones (fraction of screen height)
+    const playMinY = height * 0.71;
+    const playMaxY = height * 0.79;
+    const menuMinY = height * 0.81;
+    const menuMaxY = height * 0.89;
 
-    retryBtn.on('pointerup', () => this.startGame());
-
-    // MAIN MENU button — hit area over the baked-in dark button (~85%)
-    const menuBtn = this.add.rectangle(
-      width / 2, height * 0.85, width * 0.75, height * 0.06, 0x000000, 0
-    ).setInteractive({ useHandCursor: true }).setDepth(10);
-
-    menuBtn.on('pointerup', () => {
-      if (this.starting) return;
-      this.starting = true;
-      this.scene.start('MainMenuScene');
+    // Scene-level tap detection — more reliable on mobile than invisible game objects
+    this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
+      const y = pointer.y;
+      if (y >= playMinY && y <= playMaxY) {
+        this.startGame();
+      } else if (y >= menuMinY && y <= menuMaxY) {
+        if (this.starting) return;
+        this.starting = true;
+        this.scene.start('MainMenuScene');
+      }
     });
 
     // Keyboard shortcuts
