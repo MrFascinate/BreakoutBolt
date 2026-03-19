@@ -24,6 +24,6 @@ export class ScrollingBackground {
 
   update(speed: number): void {
     const delta = speed * 0.016;
-    this.bgTile.tilePositionY -= delta;
+    this.bgTile.tilePositionY -= delta * 3;
   }
 }
