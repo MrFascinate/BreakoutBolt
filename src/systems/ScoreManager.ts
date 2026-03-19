@@ -37,8 +37,8 @@ export class ScoreManager {
   }
 
   getDistanceFormatted(): string {
-    const km = this.distance / 10000;
-    return `${km.toFixed(2)} km`;
+    const mi = this.distance / 16093;
+    return `${mi.toFixed(2)} mi`;
   }
 
   getComboMultiplier(): number {

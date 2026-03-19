@@ -76,7 +76,7 @@ export class GameOverScene extends Phaser.Scene {
     }).setOrigin(0.5).setDepth(2);
 
     // Distance value
-    this.add.text(width * 0.73, height * 0.60, `${data.distance ?? '0.00 km'}`, {
+    this.add.text(width * 0.73, height * 0.60, `${data.distance ?? '0.00 mi'}`, {
       fontSize: '16px',
       fontFamily: 'Arial Black, Arial',
       color: '#d4a574',

@@ -14,9 +14,12 @@ export class ScrollingBackground {
     const height = getGameHeight(this.scene);
 
     // Street background as a vertically scrolling tile sprite
+    // Use the texture's native dimensions for tiling, then scale to fill viewport
+    const tex = this.scene.textures.get('street-bg').getSourceImage();
     this.bgTile = this.scene.add.tileSprite(
-      width / 2, height / 2, width, height, 'street-bg'
+      width / 2, height / 2, tex.width, tex.height, 'street-bg'
     ).setDepth(-10);
+    this.bgTile.setDisplaySize(width, height);
   }
 
   update(speed: number): void {

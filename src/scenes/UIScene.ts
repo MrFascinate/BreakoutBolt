@@ -23,7 +23,7 @@ export class UIScene extends Phaser.Scene {
     this.add.rectangle(width / 2, 0, width, 50, 0x000000, 0.6).setOrigin(0.5, 0);
 
     // Top row: distance (left), lives (center), score (right)
-    this.distanceText = this.add.text(padding, 6, '0.00 km', {
+    this.distanceText = this.add.text(padding, 6, '0.00 mi', {
       fontSize: '14px',
       fontFamily: 'Arial',
       color: '#d4a574',
