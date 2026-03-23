@@ -1,5 +1,5 @@
 import { CONSTANTS } from '../config/Constants';
-import { getLanePositions, getGroundY } from '../utils/DeviceUtils';
+import { getLanePositions, getGroundY, clampToRoad } from '../utils/DeviceUtils';
 
 export type PlayerState = 'running' | 'hit' | 'invincible';
 
@@ -18,13 +18,14 @@ export class Player {
     this.groundY = getGroundY(scene);
 
     // Animated protagonist sprite — display size is larger than collision box
+    const displayW = 80;
     this.sprite = scene.add.sprite(
-      lanes[1],
+      clampToRoad(scene, lanes[1], displayW),
       this.groundY - CONSTANTS.PLAYER_HEIGHT / 2,
       'protagonist-sheet', 0
     )
       .setDepth(5)
-      .setDisplaySize(80, 110)
+      .setDisplaySize(displayW, 110)
       .play('protagonist-run-anim');
   }
 
@@ -34,9 +35,10 @@ export class Player {
 
     this.currentLane = newLane;
     const lanes = getLanePositions(this.scene);
+    const displayW = 80;
     this.scene.tweens.add({
       targets: this.sprite,
-      x: lanes[this.currentLane],
+      x: clampToRoad(this.scene, lanes[this.currentLane], displayW),
       duration: CONSTANTS.LANE_SWITCH_DURATION,
       ease: 'Power2',
     });

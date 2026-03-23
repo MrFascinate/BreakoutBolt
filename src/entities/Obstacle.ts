@@ -1,5 +1,5 @@
 import { ObstacleConfig, ObstacleType } from '../config/Constants';
-import { getGroundY, getLanePositions } from '../utils/DeviceUtils';
+import { getGroundY, getLanePositions, clampToRoad } from '../utils/DeviceUtils';
 
 const SPRITE_KEYS: Record<ObstacleType, string> = {
   cop: 'cop-sheet',
@@ -57,7 +57,7 @@ export class Obstacle {
 
     const display = DISPLAY_SIZES[config.type];
     this.sprite.setTexture(spriteKey, 0);
-    this.sprite.setPosition(lanes[lane], startY);
+    this.sprite.setPosition(clampToRoad(this.scene, lanes[lane], display.w), startY);
     this.sprite.setDisplaySize(display.w, display.h);
     this.sprite.setVisible(true);
     if (animKey) {
@@ -89,9 +89,10 @@ export class Obstacle {
     const newLane = possibleLanes[Math.floor(Math.random() * possibleLanes.length)];
     this.lane = newLane;
 
+    const display = DISPLAY_SIZES[this.config.type];
     this.scene.tweens.add({
       targets: this.sprite,
-      x: lanes[newLane],
+      x: clampToRoad(this.scene, lanes[newLane], display.w),
       duration: 200,
       ease: 'Power1',
     });
