@@ -9,12 +9,17 @@ export class UIScene extends Phaser.Scene {
   private toastText!: Phaser.GameObjects.Text;
   private levelUpText!: Phaser.GameObjects.Text;
   private pauseOverlay!: Phaser.GameObjects.Container;
+  private gameSceneListeners: Array<{ event: string; fn: Function }> = [];
 
   constructor() {
     super({ key: 'UIScene' });
   }
 
   create(): void {
+    // Clean up any previous listeners when scene restarts
+    this.cleanupGameSceneListeners();
+    this.events.once('shutdown', () => this.cleanupGameSceneListeners());
+    this.events.once('destroy', () => this.cleanupGameSceneListeners());
     const width = getGameWidth(this);
     const height = getGameHeight(this);
     const padding = 16;
@@ -110,33 +115,43 @@ export class UIScene extends Phaser.Scene {
       this.events.emit('toggle-pause');
     });
 
-    // Listen to GameScene events
+    // Listen to GameScene events (tracked for cleanup)
     const gameScene = this.scene.get('GameScene');
 
-    gameScene.events.on('score-updated', (data: { score: number; distance: string }) => {
+    const onScoreUpdated = (data: { score: number; distance: string }) => {
       if (!data) return;
       this.scoreText.setText(`${data.score.toLocaleString()}`);
       this.distanceText.setText(`${data.distance}`);
-    });
-
-    gameScene.events.on('lives-changed', (lives: number) => {
+    };
+    const onLivesChanged = (lives: number) => {
       this.livesText.setText('\u2764 '.repeat(lives).trim());
-    });
-
-    gameScene.events.on('near-miss', () => {
+    };
+    const onNearMiss = () => {
       this.showToast('+100 CLOSE CALL');
-    });
-
-    gameScene.events.on('level-changed', (level: number) => {
+    };
+    const onLevelChanged = (level: number) => {
       this.levelText.setText(`LEVEL ${level}`);
       if (level > 1) {
         this.showLevelUp(level);
       }
-    });
-
-    gameScene.events.on('pause-changed', (paused: boolean) => {
+    };
+    const onPauseChanged = (paused: boolean) => {
       this.pauseOverlay.setVisible(paused);
-    });
+    };
+
+    gameScene.events.on('score-updated', onScoreUpdated);
+    gameScene.events.on('lives-changed', onLivesChanged);
+    gameScene.events.on('near-miss', onNearMiss);
+    gameScene.events.on('level-changed', onLevelChanged);
+    gameScene.events.on('pause-changed', onPauseChanged);
+
+    this.gameSceneListeners = [
+      { event: 'score-updated', fn: onScoreUpdated },
+      { event: 'lives-changed', fn: onLivesChanged },
+      { event: 'near-miss', fn: onNearMiss },
+      { event: 'level-changed', fn: onLevelChanged },
+      { event: 'pause-changed', fn: onPauseChanged },
+    ];
 
     // Set initial state
     const initData = this.scene.settings.data as { lives: number; level: number };
@@ -184,5 +199,15 @@ export class UIScene extends Phaser.Scene {
         });
       },
     });
+  }
+
+  private cleanupGameSceneListeners(): void {
+    const gameScene = this.scene.get('GameScene');
+    if (gameScene) {
+      for (const { event, fn } of this.gameSceneListeners) {
+        gameScene.events.off(event, fn as any);
+      }
+    }
+    this.gameSceneListeners = [];
   }
 }

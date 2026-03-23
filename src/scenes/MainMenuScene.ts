@@ -11,6 +11,15 @@ export class MainMenuScene extends Phaser.Scene {
 
   create(): void {
     this.starting = false;
+
+    // Ensure no leftover scenes from a previous game
+    if (this.scene.isActive('UIScene') || this.scene.isSleeping('UIScene')) {
+      this.scene.stop('UIScene');
+    }
+    if (this.scene.isActive('GameScene') || this.scene.isSleeping('GameScene')) {
+      this.scene.stop('GameScene');
+    }
+
     const width = getGameWidth(this);
     const height = this.cameras.main.height;
 

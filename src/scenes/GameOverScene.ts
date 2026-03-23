@@ -94,22 +94,30 @@ export class GameOverScene extends Phaser.Scene {
     const mainMenuZone = this.add.zone(width / 2, height * 0.90, width * 0.7, height * 0.07)
       .setInteractive()
       .setDepth(5);
-    mainMenuZone.on('pointerdown', () => {
-      if (this.starting) return;
-      this.starting = true;
-      this.scene.start('MainMenuScene');
-    });
+    mainMenuZone.on('pointerdown', () => this.goToMainMenu());
 
     // Keyboard shortcuts
     this.input.keyboard?.on('keydown-SPACE', () => this.startGame());
-    this.input.keyboard?.on('keydown-ESC', () => {
-      this.scene.start('MainMenuScene');
-    });
+    this.input.keyboard?.on('keydown-ESC', () => this.goToMainMenu());
   }
 
   private startGame(): void {
     if (this.starting) return;
     this.starting = true;
+    // Ensure UIScene is fully stopped before starting a new game
+    if (this.scene.isActive('UIScene') || this.scene.isSleeping('UIScene')) {
+      this.scene.stop('UIScene');
+    }
     this.scene.start('GameScene');
+  }
+
+  private goToMainMenu(): void {
+    if (this.starting) return;
+    this.starting = true;
+    // Ensure UIScene is fully stopped before going to main menu
+    if (this.scene.isActive('UIScene') || this.scene.isSleeping('UIScene')) {
+      this.scene.stop('UIScene');
+    }
+    this.scene.start('MainMenuScene');
   }
 }
