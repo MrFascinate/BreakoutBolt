@@ -27,17 +27,23 @@ export class MainMenuScene extends Phaser.Scene {
     const bg = this.add.image(width / 2, height / 2, 'title-screen');
     bg.setDisplaySize(width, height);
 
-    // High score overlay — positioned where the baked-in text is (~43% down)
+    // Cover the baked-in high score text in the image with a matching background,
+    // then draw the real dynamic high score from localStorage on top.
+    // The baked-in text sits at ~43.5% down the image.
     const highScore = getHighScore();
-    if (highScore > 0) {
-      this.add.text(width / 2, height * 0.435, `High Score: ${highScore.toLocaleString()}`, {
-        fontSize: '14px',
-        fontFamily: 'Arial Black, Arial',
-        color: '#ffffff',
-        stroke: '#000000',
-        strokeThickness: 3,
-      }).setOrigin(0.5).setDepth(2);
-    }
+    const hsY = height * 0.435;
+    // Opaque cover to hide the baked-in "High Score: 18,473" in the image
+    this.add.rectangle(width / 2, hsY, width * 0.55, 22, 0x1a0a2e, 1)
+      .setOrigin(0.5)
+      .setDepth(1);
+    // Single source-of-truth high score from localStorage
+    this.add.text(width / 2, hsY, highScore > 0 ? `High Score: ${highScore.toLocaleString()}` : '', {
+      fontSize: '14px',
+      fontFamily: 'Arial Black, Arial',
+      color: '#ffffff',
+      stroke: '#000000',
+      strokeThickness: 3,
+    }).setOrigin(0.5).setDepth(2);
 
     // Any tap anywhere starts the game
     this.input.on('pointerdown', () => this.startGame());
