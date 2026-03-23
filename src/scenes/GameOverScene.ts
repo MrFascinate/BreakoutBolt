@@ -14,8 +14,13 @@ export class GameOverScene extends Phaser.Scene {
     const width = getGameWidth(this);
     const height = getGameHeight(this);
     const score = data.score ?? 0;
-    const isNewHighScore = saveHighScore(score);
-    const highScore = getHighScore();
+    // Read previous best BEFORE saving so comparison is against the real stored value
+    const previousBest = getHighScore();
+    const isNewHighScore = score > 0 && score > previousBest;
+    if (isNewHighScore) {
+      saveHighScore(score);
+    }
+    const highScore = isNewHighScore ? score : previousBest;
 
     // Game Over background image
     const bg = this.add.image(width / 2, height / 2, 'gameover-screen');
