@@ -39,7 +39,7 @@ export class UIScene extends Phaser.Scene {
     this.livesText = this.add.text(width / 2, 6, '', {
       fontSize: '18px',
       fontFamily: 'Arial',
-      color: '#ffdd00',
+      color: '#ffff00',
       stroke: '#000000',
       strokeThickness: 2,
     }).setOrigin(0.5, 0);
@@ -156,7 +156,7 @@ export class UIScene extends Phaser.Scene {
     // Set initial state
     const initData = this.scene.settings.data as { lives: number; level: number };
     if (initData?.lives) {
-      this.livesText.setText('\u2764 '.repeat(initData.lives).trim());
+      this.livesText.setText('\u26A1 '.repeat(initData.lives).trim());
     }
     if (initData?.level) {
       this.levelText.setText(`LEVEL ${initData.level}`);
