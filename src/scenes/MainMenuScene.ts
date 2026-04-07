@@ -27,23 +27,25 @@ export class MainMenuScene extends Phaser.Scene {
     const bg = this.add.image(width / 2, height / 2, 'title-screen');
     bg.setDisplaySize(width, height);
 
-    // "BOLT" / "BREAKOUT" two-line sci-fi title
-    const titleTop = this.add.text(width / 2, height * 0.08, 'BOLT', {
-      fontSize: '62px',
+    // "BREAKOUT" / "BOLT" two-line sci-fi title
+    const titleTop = this.add.text(width / 2, height * 0.07, 'BREAKOUT', {
+      fontSize: '42px',
       fontFamily: '"Courier New", "Lucida Console", monospace',
-      color: '#00eeff',
+      color: '#0066ff',
       stroke: '#000000',
       strokeThickness: 8,
-      letterSpacing: 12,
+      letterSpacing: 10,
+      fontStyle: 'bold',
     }).setOrigin(0.5).setDepth(2);
 
-    const titleBottom = this.add.text(width / 2, height * 0.14, 'BREAKOUT', {
-      fontSize: '28px',
+    const titleBottom = this.add.text(width / 2, height * 0.13, 'BOLT', {
+      fontSize: '56px',
       fontFamily: '"Courier New", "Lucida Console", monospace',
-      color: '#ffdd00',
+      color: '#0066ff',
       stroke: '#000000',
-      strokeThickness: 5,
-      letterSpacing: 14,
+      strokeThickness: 8,
+      letterSpacing: 16,
+      fontStyle: 'bold',
     }).setOrigin(0.5).setDepth(2);
 
     // Subtle bounce animation on both title lines
