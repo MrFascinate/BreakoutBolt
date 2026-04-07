@@ -39,7 +39,7 @@ export class UIScene extends Phaser.Scene {
     this.livesText = this.add.text(width / 2, 6, '', {
       fontSize: '18px',
       fontFamily: 'Arial',
-      color: '#ff4444',
+      color: '#ffdd00',
       stroke: '#000000',
       strokeThickness: 2,
     }).setOrigin(0.5, 0);
@@ -124,7 +124,7 @@ export class UIScene extends Phaser.Scene {
       this.distanceText.setText(`${data.distance}`);
     };
     const onLivesChanged = (lives: number) => {
-      this.livesText.setText('\u2764 '.repeat(lives).trim());
+      this.livesText.setText('\u26A1 '.repeat(lives).trim());
     };
     const onNearMiss = () => {
       this.showToast('+100 CLOSE CALL');
