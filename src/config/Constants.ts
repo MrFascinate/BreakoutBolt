@@ -24,7 +24,7 @@ export const CONSTANTS = {
   GROUND_Y_OFFSET: 100,
 } as const;
 
-export type ObstacleType = 'cop' | 'maga' | 'karen';
+export type ObstacleType = 'agent' | 'cameraman' | 'protester';
 
 export interface ObstacleConfig {
   type: ObstacleType;

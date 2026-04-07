@@ -2,22 +2,22 @@ import { ObstacleConfig, ObstacleType } from '../config/Constants';
 import { getGroundY, getLanePositions, clampToRoad } from '../utils/DeviceUtils';
 
 const SPRITE_KEYS: Record<ObstacleType, string> = {
-  cop: 'cop-sheet',
-  maga: 'maga-sheet',
-  karen: 'karen-sheet',
+  agent: 'agent-sheet',
+  cameraman: 'cameraman-sheet',
+  protester: 'protester-sheet',
 };
 
 const ANIM_KEYS: Record<ObstacleType, string | null> = {
-  cop: 'cop-run-anim',
-  maga: 'maga-run-anim',
-  karen: null,
+  agent: 'agent-run-anim',
+  cameraman: 'cameraman-run-anim',
+  protester: 'protester-run-anim',
 };
 
 // Display sizes per type — larger than collision boxes for visibility
 const DISPLAY_SIZES: Record<ObstacleType, { w: number; h: number }> = {
-  cop: { w: 95, h: 170 },
-  maga: { w: 85, h: 150 },
-  karen: { w: 85, h: 130 },
+  agent: { w: 95, h: 170 },
+  cameraman: { w: 85, h: 150 },
+  protester: { w: 85, h: 130 },
 };
 
 export class Obstacle {
@@ -37,7 +37,7 @@ export class Obstacle {
     this.config = null!;
     this.lane = 1;
     // Create with a default sprite key; will be updated on spawn
-    this.sprite = scene.add.sprite(0, -100, 'cop-sheet', 0)
+    this.sprite = scene.add.sprite(0, -100, 'agent-sheet', 0)
       .setDepth(4)
       .setVisible(false);
   }
@@ -66,7 +66,7 @@ export class Obstacle {
       this.sprite.stop();
     }
 
-    // Karen zigzag behavior
+    // Protester zigzag behavior
     if (config.zigzag && !this.zigzagTimer) {
       this.zigzagTimer = this.scene.time.delayedCall(
         600 + Math.random() * 400,
