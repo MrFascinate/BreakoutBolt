@@ -51,10 +51,10 @@ export class GameOverScene extends Phaser.Scene {
       ease: 'Back.easeOut',
     });
 
-    // --- Score box ---
+    // --- Score box (positioned tight under GAME OVER text) ---
     const boxW = width * 0.82;
-    const boxH = height * 0.32;
-    const boxY = height * 0.43;
+    const boxH = height * 0.26;
+    const boxY = height * 0.33;
 
     // Box background
     const boxGfx = this.add.graphics().setDepth(2);
