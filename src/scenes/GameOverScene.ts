@@ -51,49 +51,62 @@ export class GameOverScene extends Phaser.Scene {
       ease: 'Back.easeOut',
     });
 
-    // Score display
-    this.add.text(width / 2, height * 0.30, 'SCORE', {
-      fontSize: '16px',
+    // --- Score box ---
+    const boxW = width * 0.82;
+    const boxH = height * 0.32;
+    const boxY = height * 0.43;
+
+    // Box background
+    const boxGfx = this.add.graphics().setDepth(2);
+    boxGfx.fillStyle(0x1a0a2e, 0.85);
+    boxGfx.fillRoundedRect(width / 2 - boxW / 2, boxY - boxH / 2, boxW, boxH, 16);
+    boxGfx.lineStyle(2, 0xffdd00, 0.6);
+    boxGfx.strokeRoundedRect(width / 2 - boxW / 2, boxY - boxH / 2, boxW, boxH, 16);
+
+    // Score label + value
+    this.add.text(width / 2, boxY - boxH * 0.34, 'SCORE', {
+      fontSize: '14px',
       fontFamily: 'Arial Black, Arial',
       color: '#aaaaaa',
-      stroke: '#000000',
-      strokeThickness: 2,
-    }).setOrigin(0.5).setDepth(2);
+    }).setOrigin(0.5).setDepth(3);
 
-    this.add.text(width / 2, height * 0.36, `${score.toLocaleString()}`, {
-      fontSize: '36px',
+    this.add.text(width / 2, boxY - boxH * 0.16, `${score.toLocaleString()}`, {
+      fontSize: '38px',
       fontFamily: 'Arial Black, Arial',
       color: '#ffffff',
       stroke: '#000000',
       strokeThickness: 4,
-    }).setOrigin(0.5).setDepth(2);
+    }).setOrigin(0.5).setDepth(3);
 
-    // High score
-    this.add.text(width / 2, height * 0.44, 'HIGH SCORE', {
-      fontSize: '14px',
+    // Divider line
+    const divGfx = this.add.graphics().setDepth(3);
+    divGfx.lineStyle(1, 0xffffff, 0.25);
+    divGfx.lineBetween(width / 2 - boxW * 0.38, boxY + boxH * 0.02, width / 2 + boxW * 0.38, boxY + boxH * 0.02);
+
+    // High score label + value
+    this.add.text(width / 2, boxY + boxH * 0.12, 'HIGH SCORE', {
+      fontSize: '12px',
       fontFamily: 'Arial Black, Arial',
       color: '#aaaaaa',
-      stroke: '#000000',
-      strokeThickness: 2,
-    }).setOrigin(0.5).setDepth(2);
+    }).setOrigin(0.5).setDepth(3);
 
-    this.add.text(width / 2, height * 0.49, `${highScore.toLocaleString()}`, {
+    this.add.text(width / 2, boxY + boxH * 0.26, `${highScore.toLocaleString()}`, {
       fontSize: '24px',
       fontFamily: 'Arial Black, Arial',
       color: '#ffdd00',
       stroke: '#000000',
       strokeThickness: 3,
-    }).setOrigin(0.5).setDepth(2);
+    }).setOrigin(0.5).setDepth(3);
 
     // New high score badge
     if (isNewHighScore && score > 0) {
-      const badge = this.add.text(width / 2, height * 0.55, 'NEW HIGH SCORE!', {
-        fontSize: '16px',
+      const badge = this.add.text(width / 2, boxY + boxH * 0.42, 'NEW HIGH SCORE!', {
+        fontSize: '14px',
         fontFamily: 'Arial Black, Arial',
         color: '#ffdd00',
         stroke: '#000000',
         strokeThickness: 3,
-      }).setOrigin(0.5).setDepth(3);
+      }).setOrigin(0.5).setDepth(4);
 
       this.tweens.add({
         targets: badge,
@@ -106,8 +119,8 @@ export class GameOverScene extends Phaser.Scene {
       });
     }
 
-    // Level and distance row
-    this.add.text(width * 0.3, height * 0.61, `Level ${data.level ?? 1}`, {
+    // Level and distance below the box
+    this.add.text(width * 0.3, boxY + boxH / 2 + 20, `Level ${data.level ?? 1}`, {
       fontSize: '16px',
       fontFamily: 'Arial Black, Arial',
       color: '#ff6b35',
@@ -115,7 +128,7 @@ export class GameOverScene extends Phaser.Scene {
       strokeThickness: 3,
     }).setOrigin(0.5).setDepth(2);
 
-    this.add.text(width * 0.7, height * 0.61, `${data.distance ?? '0.00 mi'}`, {
+    this.add.text(width * 0.7, boxY + boxH / 2 + 20, `${data.distance ?? '0.00 mi'}`, {
       fontSize: '16px',
       fontFamily: 'Arial Black, Arial',
       color: '#d4a574',

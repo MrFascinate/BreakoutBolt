@@ -18,14 +18,15 @@ export class Player {
     this.groundY = getGroundY(scene);
 
     // Animated Bolt sprite — display size is larger than collision box
-    const displayW = 80;
+    const displayW = 120;
+    const displayH = 165;
     this.sprite = scene.add.sprite(
       clampToRoad(scene, lanes[1], displayW),
       this.groundY - CONSTANTS.PLAYER_HEIGHT / 2,
       'bolt-sheet', 0
     )
       .setDepth(5)
-      .setDisplaySize(displayW, 110)
+      .setDisplaySize(displayW, displayH)
       .play('bolt-run-anim');
   }
 
@@ -35,7 +36,7 @@ export class Player {
 
     this.currentLane = newLane;
     const lanes = getLanePositions(this.scene);
-    const displayW = 80;
+    const displayW = 120;
     this.scene.tweens.add({
       targets: this.sprite,
       x: clampToRoad(this.scene, lanes[this.currentLane], displayW),
