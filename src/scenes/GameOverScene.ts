@@ -14,6 +14,7 @@ export class GameOverScene extends Phaser.Scene {
     const width = getGameWidth(this);
     const height = getGameHeight(this);
     const score = data.score ?? 0;
+
     // Read previous best BEFORE saving so comparison is against the real stored value
     const previousBest = getHighScore();
     const isNewHighScore = score > 0 && score > previousBest;
@@ -26,24 +27,58 @@ export class GameOverScene extends Phaser.Scene {
     const bg = this.add.image(width / 2, height / 2, 'gameover-screen');
     bg.setDisplaySize(width, height);
 
-    // --- Dynamic text overlays positioned to match the baked-in layout ---
-    // Image layout (1024x1536): GAME OVER ~4%, illustration ~8-52%,
-    // SCORE label ~56%, HIGH SCORE label ~56%, values below labels ~60%,
-    // LEVEL label ~66%, DISTANCE label ~66%, values below labels ~70%,
-    // PLAY AGAIN button ~80%, MAIN MENU button ~90%
+    // Semi-transparent overlay for readability
+    this.add.rectangle(width / 2, height / 2, width, height, 0x000000, 0.45).setDepth(1);
 
-    // Score value — below the "SCORE" label
-    this.add.text(width * 0.27, height * 0.61, `${score.toLocaleString()}`, {
-      fontSize: '22px',
+    // GAME OVER title
+    const gameOverText = this.add.text(width / 2, height * 0.15, 'GAME OVER', {
+      fontSize: '42px',
+      fontFamily: 'Arial Black, Arial',
+      color: '#ff4444',
+      stroke: '#000000',
+      strokeThickness: 6,
+    }).setOrigin(0.5).setDepth(2);
+
+    // Subtle drop-in animation for title
+    gameOverText.setScale(0.5);
+    gameOverText.setAlpha(0);
+    this.tweens.add({
+      targets: gameOverText,
+      scaleX: 1,
+      scaleY: 1,
+      alpha: 1,
+      duration: 500,
+      ease: 'Back.easeOut',
+    });
+
+    // Score display
+    this.add.text(width / 2, height * 0.30, 'SCORE', {
+      fontSize: '16px',
+      fontFamily: 'Arial Black, Arial',
+      color: '#aaaaaa',
+      stroke: '#000000',
+      strokeThickness: 2,
+    }).setOrigin(0.5).setDepth(2);
+
+    this.add.text(width / 2, height * 0.36, `${score.toLocaleString()}`, {
+      fontSize: '36px',
       fontFamily: 'Arial Black, Arial',
       color: '#ffffff',
       stroke: '#000000',
-      strokeThickness: 3,
+      strokeThickness: 4,
     }).setOrigin(0.5).setDepth(2);
 
-    // High score value — below the "HIGH SCORE" label
-    this.add.text(width * 0.73, height * 0.61, `${highScore.toLocaleString()}`, {
-      fontSize: '22px',
+    // High score
+    this.add.text(width / 2, height * 0.44, 'HIGH SCORE', {
+      fontSize: '14px',
+      fontFamily: 'Arial Black, Arial',
+      color: '#aaaaaa',
+      stroke: '#000000',
+      strokeThickness: 2,
+    }).setOrigin(0.5).setDepth(2);
+
+    this.add.text(width / 2, height * 0.49, `${highScore.toLocaleString()}`, {
+      fontSize: '24px',
       fontFamily: 'Arial Black, Arial',
       color: '#ffdd00',
       stroke: '#000000',
@@ -52,8 +87,8 @@ export class GameOverScene extends Phaser.Scene {
 
     // New high score badge
     if (isNewHighScore && score > 0) {
-      const badge = this.add.text(width / 2, height * 0.56, 'NEW HIGH SCORE!', {
-        fontSize: '14px',
+      const badge = this.add.text(width / 2, height * 0.55, 'NEW HIGH SCORE!', {
+        fontSize: '16px',
         fontFamily: 'Arial Black, Arial',
         color: '#ffdd00',
         stroke: '#000000',
@@ -71,35 +106,102 @@ export class GameOverScene extends Phaser.Scene {
       });
     }
 
-    // Level value — below the "LEVEL" label
-    this.add.text(width * 0.27, height * 0.72, `${data.level ?? 1}`, {
-      fontSize: '22px',
+    // Level and distance row
+    this.add.text(width * 0.3, height * 0.61, `Level ${data.level ?? 1}`, {
+      fontSize: '16px',
       fontFamily: 'Arial Black, Arial',
       color: '#ff6b35',
       stroke: '#000000',
       strokeThickness: 3,
     }).setOrigin(0.5).setDepth(2);
 
-    // Distance value — below the "DISTANCE" label
-    this.add.text(width * 0.73, height * 0.72, `${data.distance ?? '0.00 mi'}`, {
-      fontSize: '18px',
+    this.add.text(width * 0.7, height * 0.61, `${data.distance ?? '0.00 mi'}`, {
+      fontSize: '16px',
       fontFamily: 'Arial Black, Arial',
       color: '#d4a574',
       stroke: '#000000',
       strokeThickness: 3,
     }).setOrigin(0.5).setDepth(2);
 
-    // PLAY AGAIN button zone (~76-84% of height)
-    const playAgainZone = this.add.zone(width / 2, height * 0.80, width * 0.7, height * 0.07)
-      .setInteractive()
-      .setDepth(5);
-    playAgainZone.on('pointerdown', () => this.startGame());
+    // --- Try Again button ---
+    const btnW = Math.min(width * 0.6, 240);
+    const btnH = 50;
+    const tryAgainY = height * 0.74;
 
-    // MAIN MENU button zone (~86-94% of height)
-    const mainMenuZone = this.add.zone(width / 2, height * 0.90, width * 0.7, height * 0.07)
-      .setInteractive()
-      .setDepth(5);
-    mainMenuZone.on('pointerdown', () => this.goToMainMenu());
+    const tryAgainGfx = this.add.graphics().setDepth(10);
+    tryAgainGfx.fillStyle(0x00cc44, 1);
+    tryAgainGfx.fillRoundedRect(width / 2 - btnW / 2, tryAgainY - btnH / 2, btnW, btnH, 14);
+    tryAgainGfx.lineStyle(3, 0xffffff, 0.8);
+    tryAgainGfx.strokeRoundedRect(width / 2 - btnW / 2, tryAgainY - btnH / 2, btnW, btnH, 14);
+
+    this.add.text(width / 2, tryAgainY, 'TRY AGAIN', {
+      fontSize: '22px',
+      fontFamily: 'Arial Black, Arial',
+      color: '#ffffff',
+      stroke: '#000000',
+      strokeThickness: 4,
+    }).setOrigin(0.5).setDepth(11);
+
+    const tryAgainZone = this.add.zone(width / 2, tryAgainY, btnW, btnH)
+      .setInteractive({ useHandCursor: true })
+      .setDepth(12);
+
+    tryAgainZone.on('pointerover', () => {
+      tryAgainGfx.clear();
+      tryAgainGfx.fillStyle(0x00ff55, 1);
+      tryAgainGfx.fillRoundedRect(width / 2 - btnW / 2, tryAgainY - btnH / 2, btnW, btnH, 14);
+      tryAgainGfx.lineStyle(3, 0xffffff, 1);
+      tryAgainGfx.strokeRoundedRect(width / 2 - btnW / 2, tryAgainY - btnH / 2, btnW, btnH, 14);
+    });
+
+    tryAgainZone.on('pointerout', () => {
+      tryAgainGfx.clear();
+      tryAgainGfx.fillStyle(0x00cc44, 1);
+      tryAgainGfx.fillRoundedRect(width / 2 - btnW / 2, tryAgainY - btnH / 2, btnW, btnH, 14);
+      tryAgainGfx.lineStyle(3, 0xffffff, 0.8);
+      tryAgainGfx.strokeRoundedRect(width / 2 - btnW / 2, tryAgainY - btnH / 2, btnW, btnH, 14);
+    });
+
+    tryAgainZone.on('pointerdown', () => this.startGame());
+
+    // --- Main Menu button ---
+    const menuY = height * 0.85;
+
+    const menuGfx = this.add.graphics().setDepth(10);
+    menuGfx.fillStyle(0x444466, 1);
+    menuGfx.fillRoundedRect(width / 2 - btnW / 2, menuY - btnH / 2, btnW, btnH, 14);
+    menuGfx.lineStyle(3, 0xffffff, 0.5);
+    menuGfx.strokeRoundedRect(width / 2 - btnW / 2, menuY - btnH / 2, btnW, btnH, 14);
+
+    this.add.text(width / 2, menuY, 'MAIN MENU', {
+      fontSize: '20px',
+      fontFamily: 'Arial Black, Arial',
+      color: '#cccccc',
+      stroke: '#000000',
+      strokeThickness: 3,
+    }).setOrigin(0.5).setDepth(11);
+
+    const menuZone = this.add.zone(width / 2, menuY, btnW, btnH)
+      .setInteractive({ useHandCursor: true })
+      .setDepth(12);
+
+    menuZone.on('pointerover', () => {
+      menuGfx.clear();
+      menuGfx.fillStyle(0x555588, 1);
+      menuGfx.fillRoundedRect(width / 2 - btnW / 2, menuY - btnH / 2, btnW, btnH, 14);
+      menuGfx.lineStyle(3, 0xffffff, 0.7);
+      menuGfx.strokeRoundedRect(width / 2 - btnW / 2, menuY - btnH / 2, btnW, btnH, 14);
+    });
+
+    menuZone.on('pointerout', () => {
+      menuGfx.clear();
+      menuGfx.fillStyle(0x444466, 1);
+      menuGfx.fillRoundedRect(width / 2 - btnW / 2, menuY - btnH / 2, btnW, btnH, 14);
+      menuGfx.lineStyle(3, 0xffffff, 0.5);
+      menuGfx.strokeRoundedRect(width / 2 - btnW / 2, menuY - btnH / 2, btnW, btnH, 14);
+    });
+
+    menuZone.on('pointerdown', () => this.goToMainMenu());
 
     // Keyboard shortcuts
     this.input.keyboard?.on('keydown-SPACE', () => this.startGame());

@@ -1,4 +1,4 @@
-const STORAGE_KEY = 'outrun-the-ops-highscore';
+const STORAGE_KEY = 'breakout-bolt-highscore';
 
 export function getHighScore(): number {
   try {

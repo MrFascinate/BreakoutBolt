@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { getGameWidth } from '../utils/DeviceUtils';
+import { getGameWidth, getGameHeight } from '../utils/DeviceUtils';
 import { getHighScore } from '../utils/HighScore';
 
 export class MainMenuScene extends Phaser.Scene {
@@ -21,32 +21,82 @@ export class MainMenuScene extends Phaser.Scene {
     }
 
     const width = getGameWidth(this);
-    const height = this.cameras.main.height;
+    const height = getGameHeight(this);
 
     // Title screen background image (covers full screen)
     const bg = this.add.image(width / 2, height / 2, 'title-screen');
     bg.setDisplaySize(width, height);
 
-    // Cover the baked-in high score text in the image with a matching background,
-    // then draw the real dynamic high score from localStorage on top.
-    // The baked-in text sits at ~43.5% down the image.
+    // High score display
     const highScore = getHighScore();
-    const hsY = height * 0.435;
-    // Opaque cover to hide the baked-in "High Score: 18,473" in the image
-    this.add.rectangle(width / 2, hsY, width * 0.55, 22, 0x1a0a2e, 1)
-      .setOrigin(0.5)
-      .setDepth(1);
-    // Single source-of-truth high score from localStorage
-    this.add.text(width / 2, hsY, highScore > 0 ? `High Score: ${highScore.toLocaleString()}` : '', {
-      fontSize: '14px',
+    if (highScore > 0) {
+      this.add.text(width / 2, height * 0.42, `High Score: ${highScore.toLocaleString()}`, {
+        fontSize: '16px',
+        fontFamily: 'Arial Black, Arial',
+        color: '#ffffff',
+        stroke: '#000000',
+        strokeThickness: 3,
+      }).setOrigin(0.5).setDepth(2);
+    }
+
+    // Animated Start button
+    const btnW = Math.min(width * 0.55, 220);
+    const btnH = 50;
+    const btnY = height * 0.78;
+
+    // Button background (rounded rectangle via graphics)
+    const btnGfx = this.add.graphics().setDepth(10);
+    btnGfx.fillStyle(0x00cc44, 1);
+    btnGfx.fillRoundedRect(width / 2 - btnW / 2, btnY - btnH / 2, btnW, btnH, 14);
+    btnGfx.lineStyle(3, 0xffffff, 0.8);
+    btnGfx.strokeRoundedRect(width / 2 - btnW / 2, btnY - btnH / 2, btnW, btnH, 14);
+
+    // Button text
+    const btnText = this.add.text(width / 2, btnY, 'START', {
+      fontSize: '24px',
       fontFamily: 'Arial Black, Arial',
       color: '#ffffff',
       stroke: '#000000',
-      strokeThickness: 3,
-    }).setOrigin(0.5).setDepth(2);
+      strokeThickness: 4,
+    }).setOrigin(0.5).setDepth(11);
 
-    // Any tap anywhere starts the game
-    this.input.on('pointerdown', () => this.startGame());
+    // Container for pulsing animation
+    const btnContainer = this.add.container(0, 0, [btnGfx, btnText]).setDepth(10);
+
+    // Subtle pulsing scale animation
+    this.tweens.add({
+      targets: btnContainer,
+      scaleX: 1.05,
+      scaleY: 1.05,
+      duration: 800,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.easeInOut',
+    });
+
+    // Interactive zone for the button
+    const btnZone = this.add.zone(width / 2, btnY, btnW, btnH)
+      .setInteractive({ useHandCursor: true })
+      .setDepth(12);
+
+    // Hover/tap feedback
+    btnZone.on('pointerover', () => {
+      btnGfx.clear();
+      btnGfx.fillStyle(0x00ff55, 1);
+      btnGfx.fillRoundedRect(width / 2 - btnW / 2, btnY - btnH / 2, btnW, btnH, 14);
+      btnGfx.lineStyle(3, 0xffffff, 1);
+      btnGfx.strokeRoundedRect(width / 2 - btnW / 2, btnY - btnH / 2, btnW, btnH, 14);
+    });
+
+    btnZone.on('pointerout', () => {
+      btnGfx.clear();
+      btnGfx.fillStyle(0x00cc44, 1);
+      btnGfx.fillRoundedRect(width / 2 - btnW / 2, btnY - btnH / 2, btnW, btnH, 14);
+      btnGfx.lineStyle(3, 0xffffff, 0.8);
+      btnGfx.strokeRoundedRect(width / 2 - btnW / 2, btnY - btnH / 2, btnW, btnH, 14);
+    });
+
+    btnZone.on('pointerdown', () => this.startGame());
 
     // Keyboard shortcut
     this.input.keyboard?.on('keydown-SPACE', () => this.startGame());

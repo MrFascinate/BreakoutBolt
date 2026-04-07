@@ -17,16 +17,16 @@ export class Player {
     const lanes = getLanePositions(scene);
     this.groundY = getGroundY(scene);
 
-    // Animated protagonist sprite — display size is larger than collision box
+    // Animated Bolt sprite — display size is larger than collision box
     const displayW = 80;
     this.sprite = scene.add.sprite(
       clampToRoad(scene, lanes[1], displayW),
       this.groundY - CONSTANTS.PLAYER_HEIGHT / 2,
-      'protagonist-sheet', 0
+      'bolt-sheet', 0
     )
       .setDepth(5)
       .setDisplaySize(displayW, 110)
-      .play('protagonist-run-anim');
+      .play('bolt-run-anim');
   }
 
   switchLane(direction: 'left' | 'right'): void {

@@ -82,14 +82,14 @@ export class ObstacleSpawner {
     this.lastTypes.push(type);
     if (this.lastTypes.length > 3) this.lastTypes.shift();
 
-    // Sometimes spawn group for maga
-    if (type === 'maga' && Math.random() < 0.3) {
-      this.spawnMagaGroup(lane);
+    // Sometimes spawn group for cameraman
+    if (type === 'cameraman' && Math.random() < 0.3) {
+      this.spawnCameramanGroup(lane);
     }
   }
 
-  private spawnMagaGroup(excludeLane: number): void {
-    const config = OBSTACLE_CONFIGS['maga'];
+  private spawnCameramanGroup(excludeLane: number): void {
+    const config = OBSTACLE_CONFIGS['cameraman'];
     const availableLanes = [0, 1, 2].filter(l => l !== excludeLane);
     // Pick a lane that has enough vertical clearance
     const safeLanes = availableLanes.filter(l => !this.isLaneTooClose(l, -80));
@@ -99,7 +99,7 @@ export class ObstacleSpawner {
   }
 
   private spawnPatrolCar(): void {
-    const config = OBSTACLE_CONFIGS['cop'];
+    const config = OBSTACLE_CONFIGS['agent'];
     // Patrol car spans 2 lanes, leave 1 open
     const openLane = Math.floor(Math.random() * CONSTANTS.LANE_COUNT);
     const blockedLanes = [0, 1, 2].filter(l => l !== openLane);
@@ -111,7 +111,7 @@ export class ObstacleSpawner {
 
   private pickObstacleType(): ObstacleType {
     // Never spawn same type 3 times in a row
-    const types: ObstacleType[] = ['cop', 'maga', 'karen'];
+    const types: ObstacleType[] = ['agent', 'cameraman', 'protester'];
 
     if (this.lastTypes.length >= 2 &&
         this.lastTypes[this.lastTypes.length - 1] === this.lastTypes[this.lastTypes.length - 2]) {

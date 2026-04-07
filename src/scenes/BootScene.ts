@@ -27,67 +27,71 @@ export class BootScene extends Phaser.Scene {
     });
 
     // Title & Game Over screens
-    this.load.image('title-screen', 'characters/Title screen.png');
-    this.load.image('gameover-screen', 'characters/Game Over Screen.png');
+    this.load.image('title-screen', 'characters/Intro.png');
+    this.load.image('gameover-screen', 'characters/Game Over.png');
 
     // Street background
     this.load.image('street-bg', 'background/game_background.png');
 
-    // Load character spritesheets as plain images so we can define cropped frames
-    this.load.image('protagonist-sheet', 'characters/spritesheet_protagonist_running.png');
-    this.load.image('cop-sheet', 'characters/spritesheet_cop_running.png');
-    this.load.image('maga-sheet', 'characters/spritesheet_maga_running.png');
-
-    this.load.image('karen-sheet', 'characters/spritesheet_karen_running.png');
+    // New character spritesheets (1920x1080, 5 horizontal frames each)
+    this.load.image('bolt-sheet', 'characters/Bolt_Running.png');
+    this.load.image('agent-sheet', 'characters/Agent_Running.png');
+    this.load.image('cameraman-sheet', 'characters/Cameraman_Running.png');
+    this.load.image('protester-sheet', 'characters/Protester_Running.png');
   }
 
   create(): void {
-    // Define cropped frames for each character spritesheet, excluding headers and dead space
+    // All new spritesheets are 1920x1080 with 5 horizontal frames.
+    // Frame width = 1920 / 5 = 384px, frame height = 1080px.
+    const frameW = 384;
+    const frameH = 1080;
+    const frameCount = 5;
 
-    // Protagonist (1536x1024, 6 frames at 256px wide, has "SPRITESHEET:" header)
-    this.addCroppedFrames('protagonist-sheet', 6, 256, 1024, {
-      cropX: 20, cropY: 200, cropW: 216, cropH: 620,
+    // Define frames for each character — use full frame (no header cropping needed)
+    this.addCroppedFrames('bolt-sheet', frameCount, frameW, frameH, {
+      cropX: 0, cropY: 0, cropW: frameW, cropH: frameH,
     });
 
-    // Cop (1536x1024, 6 frames at 256px wide, has header)
-    // Generous vertical crop to keep full body — cop is chunky
-    this.addCroppedFrames('cop-sheet', 6, 256, 1024, {
-      cropX: 5, cropY: 100, cropW: 246, cropH: 840,
+    this.addCroppedFrames('agent-sheet', frameCount, frameW, frameH, {
+      cropX: 0, cropY: 0, cropW: frameW, cropH: frameH,
     });
 
-    // MAGA (1536x1024, 8 frames at 192px wide, has header)
-    this.addCroppedFrames('maga-sheet', 8, 192, 1024, {
-      cropX: 5, cropY: 130, cropW: 182, cropH: 760,
+    this.addCroppedFrames('cameraman-sheet', frameCount, frameW, frameH, {
+      cropX: 0, cropY: 0, cropW: frameW, cropH: frameH,
     });
 
-    // Karen (1536x1024, 6 frames at 256px wide, single row)
-    this.addCroppedFrames('karen-sheet', 6, 256, 1024, {
-      cropX: 15, cropY: 100, cropW: 226, cropH: 820,
+    this.addCroppedFrames('protester-sheet', frameCount, frameW, frameH, {
+      cropX: 0, cropY: 0, cropW: frameW, cropH: frameH,
     });
 
-    // Create animations
+    // Create run animations — all characters use 5 frames
     this.anims.create({
-      key: 'protagonist-run-anim',
-      frames: this.buildFrameArray('protagonist-sheet', 6),
+      key: 'bolt-run-anim',
+      frames: this.buildFrameArray('bolt-sheet', frameCount),
       frameRate: 10,
       repeat: -1,
     });
 
     this.anims.create({
-      key: 'cop-run-anim',
-      frames: this.buildFrameArray('cop-sheet', 6),
+      key: 'agent-run-anim',
+      frames: this.buildFrameArray('agent-sheet', frameCount),
       frameRate: 10,
       repeat: -1,
     });
 
     this.anims.create({
-      key: 'maga-run-anim',
-      frames: this.buildFrameArray('maga-sheet', 8),
+      key: 'cameraman-run-anim',
+      frames: this.buildFrameArray('cameraman-sheet', frameCount),
       frameRate: 10,
       repeat: -1,
     });
 
-    // Karen: static frame (no animation)
+    this.anims.create({
+      key: 'protester-run-anim',
+      frames: this.buildFrameArray('protester-sheet', frameCount),
+      frameRate: 10,
+      repeat: -1,
+    });
 
     this.scene.start('MainMenuScene');
   }
@@ -103,32 +107,6 @@ export class BootScene extends Phaser.Scene {
     const tex = this.textures.get(key);
     for (let i = 0; i < frameCount; i++) {
       tex.add(i, 0, i * frameW + crop.cropX, crop.cropY, crop.cropW, crop.cropH);
-    }
-  }
-
-  /** Add cropped frames from a grid spritesheet (cols x rows) */
-  private addGridCroppedFrames(
-    key: string,
-    cols: number,
-    rows: number,
-    frameW: number,
-    frameH: number,
-    crop: { cropX: number; cropY: number; cropW: number; cropH: number }
-  ): void {
-    const tex = this.textures.get(key);
-    let frameIndex = 0;
-    for (let row = 0; row < rows; row++) {
-      for (let col = 0; col < cols; col++) {
-        tex.add(
-          frameIndex,
-          0,
-          col * frameW + crop.cropX,
-          row * frameH + crop.cropY,
-          crop.cropW,
-          crop.cropH
-        );
-        frameIndex++;
-      }
     }
   }
 

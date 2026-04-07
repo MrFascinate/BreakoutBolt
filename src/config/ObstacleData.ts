@@ -1,8 +1,8 @@
 import { ObstacleConfig } from './Constants';
 
 export const OBSTACLE_CONFIGS: Record<string, ObstacleConfig> = {
-  cop: {
-    type: 'cop',
+  agent: {
+    type: 'agent',
     spawnWeight: 50,
     color: 0x3388ff,       // Bright blue — visible against dark ground
     width: 50,
@@ -15,8 +15,8 @@ export const OBSTACLE_CONFIGS: Record<string, ObstacleConfig> = {
     speed: 0,
     zigzag: false,
   },
-  maga: {
-    type: 'maga',
+  cameraman: {
+    type: 'cameraman',
     spawnWeight: 35,
     color: 0xff2222,       // Bright red
     width: 50,
@@ -29,8 +29,8 @@ export const OBSTACLE_CONFIGS: Record<string, ObstacleConfig> = {
     speed: 100,
     zigzag: false,
   },
-  karen: {
-    type: 'karen',
+  protester: {
+    type: 'protester',
     spawnWeight: 15,
     color: 0xcc44ff,       // Bright purple
     width: 45,
