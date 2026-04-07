@@ -1,5 +1,5 @@
 import { CONSTANTS } from '../config/Constants';
-import { getLanePositions, getGroundY, clampToRoad } from '../utils/DeviceUtils';
+import { getLanePositions, getGroundY } from '../utils/DeviceUtils';
 
 export type PlayerState = 'running' | 'hit' | 'invincible';
 
@@ -21,7 +21,7 @@ export class Player {
     const displayW = 120;
     const displayH = 165;
     this.sprite = scene.add.sprite(
-      clampToRoad(scene, lanes[1], displayW),
+      lanes[1],
       this.groundY - CONSTANTS.PLAYER_HEIGHT / 2,
       'bolt-sheet', 0
     )
@@ -36,10 +36,9 @@ export class Player {
 
     this.currentLane = newLane;
     const lanes = getLanePositions(this.scene);
-    const displayW = 120;
     this.scene.tweens.add({
       targets: this.sprite,
-      x: clampToRoad(this.scene, lanes[this.currentLane], displayW),
+      x: lanes[this.currentLane],
       duration: CONSTANTS.LANE_SWITCH_DURATION,
       ease: 'Power2',
     });
