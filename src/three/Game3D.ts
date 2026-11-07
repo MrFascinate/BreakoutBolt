@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { CONSTANTS, ObstacleConfig, ObstacleType } from '../config/Constants';
 import { OBSTACLE_CONFIGS } from '../config/ObstacleData';
 import { ScoreManager } from '../systems/ScoreManager';
-import { Rig, animateRun, buildBolt, buildEnemy } from './Models';
+import { EnemyView, animateRun, buildBolt } from './Models';
 import { LANE_SPACING, LANE_X } from './World';
 
 // The 2D game measures speed and distance in screen pixels. These factors map
@@ -31,7 +31,7 @@ export interface GameEvents {
 }
 
 class Enemy {
-  rig: Rig;
+  view: EnemyView;
   config!: ObstacleConfig;
   lane = 1;
   active = false;
@@ -40,14 +40,15 @@ class Enemy {
   zigzagged = false;
   laneTween: { from: number; to: number; start: number; dur: number } | null = null;
 
-  constructor(readonly type: ObstacleType, scene: THREE.Scene) {
-    this.rig = buildEnemy(type);
-    this.rig.root.visible = false;
-    scene.add(this.rig.root);
+  constructor(readonly type: ObstacleType, scene: THREE.Scene, makeView: (type: ObstacleType) => EnemyView) {
+    this.view = makeView(type);
+    this.view.root.visible = false;
+    scene.add(this.view.root);
   }
 
-  get z(): number { return this.rig.root.position.z; }
-  get x(): number { return this.rig.root.position.x; }
+  get root(): THREE.Object3D { return this.view.root; }
+  get z(): number { return this.root.position.z; }
+  get x(): number { return this.root.position.x; }
 }
 
 export class Game3D {
@@ -75,14 +76,18 @@ export class Game3D {
   private patrolTimer = 0;
   private globalCooldown = 0;
 
-  constructor(private scene: THREE.Scene, private events: GameEvents) {
+  constructor(
+    private scene: THREE.Scene,
+    private events: GameEvents,
+    makeEnemy: (type: ObstacleType) => EnemyView
+  ) {
     scene.add(this.bolt.root);
     this.bolt.root.traverse((o) => {
       const m = (o as THREE.Mesh).material;
       if (m instanceof THREE.MeshStandardMaterial && !this.boltMetals.includes(m)) this.boltMetals.push(m);
     });
     for (const type of TYPES) {
-      for (let i = 0; i < POOL_PER_TYPE; i++) this.enemies.push(new Enemy(type, scene));
+      for (let i = 0; i < POOL_PER_TYPE; i++) this.enemies.push(new Enemy(type, scene, makeEnemy));
     }
   }
 
@@ -238,8 +243,8 @@ export class Game3D {
     e.dodged = false;
     e.zigzagged = false;
     e.laneTween = null;
-    e.rig.root.position.set(LANE_X[lane], 0, z);
-    e.rig.root.visible = true;
+    e.root.position.set(LANE_X[lane], 0, z);
+    e.root.visible = true;
     // Protester zigzag behavior: one lane change 600–1000ms after spawning
     e.zigzagAt = config.zigzag ? this.time + 600 + Math.random() * 400 : null;
     return e;
@@ -249,12 +254,12 @@ export class Game3D {
     e.active = false;
     e.zigzagAt = null;
     e.laneTween = null;
-    e.rig.root.visible = false;
+    e.root.visible = false;
   }
 
   private updateEnemy(e: Enemy, dt: number): void {
-    e.rig.root.position.z += (this.speed + e.config.speed) * ZK * dt;
-    animateRun(e.rig, this.time / 1000, 2.2 + e.config.speed / 120);
+    e.root.position.z += (this.speed + e.config.speed) * ZK * dt;
+    e.view.animate(dt, 1 + e.config.speed / 260);
 
     if (e.zigzagAt !== null && this.time >= e.zigzagAt) {
       e.zigzagAt = null;
@@ -262,7 +267,7 @@ export class Game3D {
     }
     if (e.laneTween) {
       const k = Math.min((this.time - e.laneTween.start) / e.laneTween.dur, 1);
-      e.rig.root.position.x = e.laneTween.from + (e.laneTween.to - e.laneTween.from) * k;
+      e.root.position.x = e.laneTween.from + (e.laneTween.to - e.laneTween.from) * k;
       if (k >= 1) e.laneTween = null;
     }
     if (e.z > DESPAWN_Z) this.deactivate(e);

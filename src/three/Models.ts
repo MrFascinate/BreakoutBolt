@@ -41,7 +41,7 @@ function glow(color: number): THREE.MeshBasicMaterial {
 }
 
 /** Outline thickness is pushed along vertex normals, so it stays even on scaled-down parts. */
-function outlineMaterial(thickness: number): THREE.MeshBasicMaterial {
+export function outlineMaterial(thickness: number): THREE.MeshBasicMaterial {
   const key = `outline-${thickness}`;
   if (!matCache.has(key)) {
     const m = new THREE.MeshBasicMaterial({ color: 0x111118, side: THREE.BackSide });
@@ -86,7 +86,7 @@ const cyl = (rt: number, rb: number, h: number, seg = 18) =>
 
 /** Soft dark disc under a character — cheaper than real shadow maps on mobile. */
 let shadowMat: THREE.MeshBasicMaterial | null = null;
-function blobShadow(radius: number): THREE.Mesh {
+export function blobShadow(radius: number): THREE.Mesh {
   if (!shadowMat) {
     const canvas = document.createElement('canvas');
     canvas.width = canvas.height = 64;
@@ -311,10 +311,54 @@ function buildAgent(): Rig {
   const front = 0.215;
   rig.torso.add(part(box(0.24, 0.8, 0.02, 0.01), toon(0xf2f2f2), [0, 0.02, front], 0));
   rig.torso.add(part(box(0.08, 0.5, 0.02, 0.01), toon(0xb3202a), [0, 0.0, front + 0.012], 0));
-  const glasses = part(box(0.44, 0.1, 0.06, 0.03), toon(0x0a0a0a), [0, 0.02, 0.27], 0.012);
+  const glasses = buildSunglasses();
+  glasses.position.set(0, 0.02, 0.27);
   rig.head.add(glasses);
   rig.head.add(part(capsule(0.02, 0.1), toon(0x222222), [0.3, -0.12, 0.02], 0)); // earpiece wire
   return rig;
+}
+
+// ---------------------------------------------------------------- props
+// Shared by the coded enemies and the downloaded character models.
+
+export function buildSunglasses(width = 0.44): THREE.Group {
+  return part(box(width, width * 0.23, 0.06, 0.03), toon(0x0a0a0a), [0, 0, 0], 0.012);
+}
+
+export function buildTie(length = 0.5): THREE.Group {
+  return part(box(0.09, length, 0.03, 0.012), toon(0xb3202a), [0, 0, 0], 0.01);
+}
+
+/** Shoulder-mounted news camera, lens pointing +Z, with a red recording light. */
+export function buildNewsCamera(): THREE.Group {
+  const cam = new THREE.Group();
+  cam.add(part(box(0.32, 0.36, 0.7, 0.06), toon(0x1c1c1f)));
+  const lens = part(cyl(0.13, 0.15, 0.3), toon(0x2a2a2e), [0, 0.02, 0.48]);
+  lens.rotation.x = Math.PI / 2;
+  cam.add(lens);
+  const glass = new THREE.Mesh(cyl(0.1, 0.1, 0.02), metal(0x5aa0ff, 0.1));
+  glass.rotation.x = Math.PI / 2;
+  glass.position.set(0, 0.02, 0.64);
+  cam.add(glass);
+  const tally = new THREE.Mesh(sphere(0.035), glow(0xff2a2a));
+  tally.position.set(0.1, 0.2, 0.2);
+  cam.add(tally);
+  return cam;
+}
+
+/** "ROBOTS GO HOME" protest sign: pole starts at the origin, board on top facing +Z. */
+export function buildSign(poleLength = 1.3): THREE.Group {
+  sharedSignTex ??= signTexture();
+  const sign = new THREE.Group();
+  sign.add(part(cyl(0.035, 0.035, poleLength, 8), toon(0x7a5230), [0, poleLength / 2, 0], 0.012));
+  sign.add(part(box(1.0, 0.62, 0.05, 0.02), toon(0xc99a5b), [0, poleLength + 0.15, 0]));
+  const face = new THREE.Mesh(
+    cached('signFace', () => new THREE.PlaneGeometry(0.96, 0.58)),
+    new THREE.MeshBasicMaterial({ map: sharedSignTex })
+  );
+  face.position.set(0, poleLength + 0.15, 0.03);
+  sign.add(face);
+  return sign;
 }
 
 /** News cameraman: blue polo, khaki vest, big shoulder-mounted camera aimed at Bolt. */
@@ -327,19 +371,8 @@ function buildCameraman(): Rig {
     rig.torso.add(part(box(0.22, 0.7, 0.04, 0.02), toon(0xb59a6a), [side * 0.22, -0.04, 0.21], 0.015));
   }
   // Camera on the right shoulder; right arm raised to steady it
-  const cam = new THREE.Group();
+  const cam = buildNewsCamera();
   cam.position.set(0.42, 2.22, 0.1);
-  cam.add(part(box(0.32, 0.36, 0.7, 0.06), toon(0x1c1c1f)));
-  const lens = part(cyl(0.13, 0.15, 0.3), toon(0x2a2a2e), [0, 0.02, 0.48]);
-  lens.rotation.x = Math.PI / 2;
-  cam.add(lens);
-  const glass = new THREE.Mesh(cyl(0.1, 0.1, 0.02), metal(0x5aa0ff, 0.1));
-  glass.rotation.x = Math.PI / 2;
-  glass.position.set(0, 0.02, 0.64);
-  cam.add(glass);
-  const tally = new THREE.Mesh(sphere(0.035), glow(0xff2a2a)); // red "recording" light
-  tally.position.set(0.1, 0.2, 0.2);
-  cam.add(tally);
   rig.body.add(cam);
   rig.rightArm.rotation.set(-2.4, 0, 0.25);
   rig.fixedArms.right = true;
@@ -386,29 +419,39 @@ function buildProtester(): Rig {
   }
   // Sign held overhead in the raised left hand. The arm is flipped to point up,
   // so the sign group is counter-rotated to stay upright.
-  sharedSignTex ??= signTexture();
-  const sign = new THREE.Group();
+  const sign = buildSign();
   sign.position.set(0, -0.66, 0);
   sign.rotation.z = Math.PI + 0.35;
-  sign.add(part(cyl(0.035, 0.035, 1.3, 8), toon(0x7a5230), [0, 0.65, 0], 0.012));
-  const board = part(box(1.0, 0.62, 0.05, 0.02), toon(0xc99a5b), [0, 1.45, 0]);
-  sign.add(board);
-  const face = new THREE.Mesh(
-    new THREE.PlaneGeometry(0.96, 0.58),
-    new THREE.MeshBasicMaterial({ map: sharedSignTex })
-  );
-  face.position.set(0, 1.45, 0.03);
-  sign.add(face);
   rig.leftArm.add(sign);
   rig.leftArm.rotation.set(0, 0, Math.PI - 0.35);
   rig.fixedArms.left = true;
   return rig;
 }
 
-export function buildEnemy(type: ObstacleType): Rig {
+/** What the game needs from an enemy, whichever kind of model backs it. */
+export interface EnemyView {
+  root: THREE.Object3D;
+  /** Advance the run cycle; `rate` > 1 runs faster (e.g. the cameraman). */
+  animate(dt: number, rate: number): void;
+}
+
+function buildCodedRig(type: ObstacleType): Rig {
   switch (type) {
     case 'agent': return buildAgent();
     case 'cameraman': return buildCameraman();
     case 'protester': return buildProtester();
   }
+}
+
+/** Fallback enemies built from primitives (used if the character models fail to load). */
+export function buildCodedEnemy(type: ObstacleType): EnemyView {
+  const rig = buildCodedRig(type);
+  let t = 0;
+  return {
+    root: rig.root,
+    animate(dt, rate) {
+      t += dt;
+      animateRun(rig, t, 2.2 * rate);
+    },
+  };
 }

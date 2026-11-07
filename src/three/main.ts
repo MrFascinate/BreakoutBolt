@@ -1,7 +1,9 @@
 import * as THREE from 'three';
 import { CONSTANTS } from '../config/Constants';
 import { getHighScore, saveHighScore } from '../utils/HighScore';
-import { Game3D } from './Game3D';
+import { Game3D, GameEvents } from './Game3D';
+import { createCharacterEnemy, loadCharacterModels } from './CharacterModels';
+import { buildCodedEnemy } from './Models';
 import { World } from './World';
 
 type State = 'title' | 'playing' | 'paused' | 'over';
@@ -32,7 +34,7 @@ let shakeUntil = 0;
 let state: State = 'title';
 let starting = false;
 
-const game = new Game3D(world.scene, {
+const events: GameEvents = {
   livesChanged: (lives) => { ui.lives.textContent = '⚡ '.repeat(Math.max(lives, 0)).trim(); },
   levelChanged: (level) => {
     ui.level.textContent = `LEVEL ${level}`;
@@ -44,7 +46,24 @@ const game = new Game3D(world.scene, {
     shakeUntil = performance.now() + 100;
   },
   gameOver: (result) => showGameOver(result),
-});
+};
+
+// Start stays disabled until the enemy models are in; if they fail to load,
+// the game still works with the coded enemies.
+let game!: Game3D;
+const startBtn = $<HTMLButtonElement>('startBtn');
+startBtn.disabled = true;
+startBtn.textContent = 'LOADING…';
+const ready = loadCharacterModels()
+  .then(() => { game = new Game3D(world.scene, events, createCharacterEnemy); })
+  .catch((err) => {
+    console.warn('Character models failed to load; using coded enemies.', err);
+    game = new Game3D(world.scene, events, buildCodedEnemy);
+  })
+  .then(() => {
+    startBtn.disabled = false;
+    startBtn.textContent = 'START';
+  });
 
 /** Re-trigger a CSS animation on an element (toast, level-up, flash). */
 function restartAnim(el: HTMLElement, text?: string): void {
@@ -71,7 +90,7 @@ function showTitle(): void {
 }
 
 function startRun(): void {
-  if (starting) return;
+  if (starting || !game) return;
   starting = true;
   game.reset();
   ui.score.textContent = '0';
@@ -196,4 +215,4 @@ showTitle();
 requestAnimationFrame(frame);
 
 // Exposed for automated screenshot checks only
-(window as unknown as { __bb3d: unknown }).__bb3d = { startRun, game, get state() { return state; } };
+(window as unknown as { __bb3d: unknown }).__bb3d = { startRun, ready, get game() { return game; }, get state() { return state; } };
