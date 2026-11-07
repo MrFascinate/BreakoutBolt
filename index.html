@@ -71,6 +71,29 @@
 
     #pause { background: rgba(0,0,0,0.7); z-index: 30; cursor: pointer; }
 
+    /* Round 1: charge meter, power-ups, speed lines, hints */
+    #chargeBar { position: absolute; top: 50px; left: 0; right: 0; height: 6px; background: rgba(0,0,0,0.55); }
+    #chargeFill { height: 100%; width: 0; background: linear-gradient(90deg, #ffb300, #ffe14d, #fff6b0); box-shadow: 0 0 8px #ffe14d; transition: width 0.15s; }
+    #chargeFill.od { background: linear-gradient(90deg, #2fb8ff, #c9f3ff); box-shadow: 0 0 12px #59d8ff; animation: odPulse 0.2s infinite alternate; }
+    @keyframes odPulse { from { opacity: 0.7; } to { opacity: 1; } }
+    #powers { position: absolute; top: 62px; left: 10px; display: flex; gap: 6px; }
+    .pw { font: 12px 'Arial Black', Arial; padding: 3px 8px; border-radius: 10px; background: rgba(0,0,0,0.55); border: 1.5px solid; color: #fff; --o: 1px; }
+    #powerToast { top: 27%; font-size: 34px; color: #59d8ff; --o: 4px; opacity: 0; }
+    #powerToast.show { animation: levelUp 1.4s forwards; }
+    #hint { top: 40%; font-size: 15px; line-height: 1.6; color: #fff; --o: 2px; opacity: 0; }
+    #hint.show { animation: hint 4.5s forwards; }
+    @keyframes hint { 0% { opacity: 0; } 10% { opacity: 1; } 80% { opacity: 1; } 100% { opacity: 0; } }
+    #speedLines {
+      position: absolute; inset: -15%; pointer-events: none; z-index: 9; opacity: 0;
+      background: repeating-conic-gradient(from 0deg at 50% 45%, transparent 0deg 5deg, rgba(255,255,255,0.6) 5.4deg 5.8deg, transparent 6.2deg 11deg);
+      -webkit-mask-image: radial-gradient(ellipse at 50% 45%, transparent 30%, #000 72%);
+      mask-image: radial-gradient(ellipse at 50% 45%, transparent 30%, #000 72%);
+      animation: lines 0.1s steps(2) infinite;
+    }
+    #speedLines.od { filter: drop-shadow(0 0 2px #59d8ff) hue-rotate(0deg); background: repeating-conic-gradient(from 0deg at 50% 45%, transparent 0deg 4deg, rgba(150,230,255,0.75) 4.4deg 4.9deg, transparent 5.3deg 9deg); }
+    @keyframes lines { from { transform: rotate(0deg); } to { transform: rotate(3deg); } }
+    .mute { position: absolute; background: none; border: 0; color: #fff; cursor: pointer; pointer-events: auto; font-size: 18px; }
+
     /* Game over */
     #gameover { background: url('characters/Game Over.png') center / 100% 100% no-repeat; }
     #gameover::before { content: ''; position: absolute; inset: 0; background: rgba(0,0,0,0.45); }
@@ -96,10 +119,16 @@
       <div id="score" class="hud-text">0</div>
       <div id="level" class="hud-text">LEVEL 1</div>
       <button id="pauseBtn" aria-label="Pause">&#9208;</button>
+      <button id="muteBtn" class="mute" style="right:46px;top:20px" aria-label="Mute">&#128266;</button>
+      <div id="chargeBar"><div id="chargeFill"></div></div>
+      <div id="powers"></div>
+      <div id="powerToast" class="abs stroke"></div>
+      <div id="hint" class="abs stroke"></div>
       <div id="toast" class="abs stroke">+100 CLOSE CALL</div>
       <div id="levelUp" class="abs stroke"></div>
     </div>
     <div id="flash"></div>
+    <div id="speedLines"></div>
 
     <div id="pause" class="screen hidden">
       <div class="abs stroke" style="top:38%;font-size:48px;--o:3px">PAUSED</div>
@@ -113,6 +142,7 @@
       </div>
       <div id="titleBest" class="abs stroke" style="top:42%;font-size:16px;--o:1.5px"></div>
       <button id="startBtn" class="btn green pulse" style="top:78%;width:min(55%,220px)">START</button>
+      <button id="muteBtnTitle" class="mute" style="right:12px;top:12px;font-size:22px" aria-label="Mute">&#128266;</button>
     </div>
 
     <div id="gameover" class="screen hidden">
