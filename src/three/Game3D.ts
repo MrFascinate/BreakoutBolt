@@ -30,9 +30,13 @@ const HIT_DEPTH = 1.3;
 const NEAR_DEPTH = 1.7;
 
 // Jump / slide
-const JUMP_MS = 620;
-const JUMP_HEIGHT = 1.9;
-const CLEAR_HEIGHT = 0.8; // high enough to clear a jumpable enemy
+const JUMP_MS = 800;
+const JUMP_HEIGHT = 2.6; // visibly over an enemy's head
+const CLEAR_HEIGHT = 0.6; // high enough to clear a jumpable enemy
+/** A jump/slide/swerve this soon after touching a jumpable or slideable enemy still counts. */
+const LATE_GRACE_MS = 130;
+/** A jump pressed this close to landing is queued instead of dropped. */
+const JUMP_BUFFER_MS = 150;
 const SLIDE_MS = 650;
 
 // Collectibles and power-ups
@@ -68,6 +72,47 @@ export interface PowerState {
   charge: number; // 0..1
 }
 
+/**
+ * Green ▲ = jump over, green ▲▼ = jump or slide, red ◀▶ = can't be jumped, change lanes.
+ */
+const iconCache = new Map<string, THREE.SpriteMaterial>();
+function buildActionIcon(config: ObstacleConfig): THREE.Sprite {
+  const key = `${config.canJump}-${config.canSlide}`;
+  if (!iconCache.has(key)) {
+    const c = document.createElement('canvas');
+    c.width = c.height = 128;
+    const ctx = c.getContext('2d')!;
+    const passable = config.canJump || config.canSlide;
+    ctx.beginPath();
+    ctx.arc(64, 64, 56, 0, Math.PI * 2);
+    ctx.fillStyle = passable ? '#21b64a' : '#e0322b';
+    ctx.fill();
+    ctx.lineWidth = 8;
+    ctx.strokeStyle = '#ffffff';
+    ctx.stroke();
+    ctx.fillStyle = '#ffffff';
+    const tri = (x: number, y: number, dir: 'up' | 'down' | 'left' | 'right', s: number) => {
+      ctx.beginPath();
+      if (dir === 'up') { ctx.moveTo(x, y - s); ctx.lineTo(x + s, y + s * 0.7); ctx.lineTo(x - s, y + s * 0.7); }
+      if (dir === 'down') { ctx.moveTo(x, y + s); ctx.lineTo(x + s, y - s * 0.7); ctx.lineTo(x - s, y - s * 0.7); }
+      if (dir === 'left') { ctx.moveTo(x - s, y); ctx.lineTo(x + s * 0.7, y - s); ctx.lineTo(x + s * 0.7, y + s); }
+      if (dir === 'right') { ctx.moveTo(x + s, y); ctx.lineTo(x - s * 0.7, y - s); ctx.lineTo(x - s * 0.7, y + s); }
+      ctx.closePath();
+      ctx.fill();
+    };
+    if (config.canJump && config.canSlide) { tri(64, 42, 'up', 22); tri(64, 88, 'down', 22); }
+    else if (config.canJump) tri(64, 60, 'up', 30);
+    else if (config.canSlide) tri(64, 68, 'down', 30);
+    else { tri(38, 64, 'left', 22); tri(90, 64, 'right', 22); }
+    const tex = new THREE.CanvasTexture(c);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    iconCache.set(key, new THREE.SpriteMaterial({ map: tex, fog: false, depthWrite: false }));
+  }
+  const sprite = new THREE.Sprite(iconCache.get(key)!);
+  sprite.scale.setScalar(0.85);
+  return sprite;
+}
+
 class Enemy {
   view: EnemyView;
   config!: ObstacleConfig;
@@ -79,10 +124,20 @@ class Enemy {
   laneTween: { from: number; to: number; start: number; dur: number } | null = null;
   /** Set when Overdrive or the shield sends this enemy flying. */
   knock: { vel: THREE.Vector3; spin: THREE.Vector3 } | null = null;
+  /** Bolt got over/under this enemy; landing on it afterwards doesn't count as a hit. */
+  cleared = false;
+  /** Contact happened without clearing; the hit lands at this time unless Bolt reacts. */
+  graceUntil = 0;
+  /** Floating icon telling the player how to get past this enemy. */
+  icon: THREE.Sprite;
 
   constructor(readonly type: ObstacleType, scene: THREE.Scene, makeView: (type: ObstacleType) => EnemyView) {
     this.view = makeView(type);
     this.view.root.visible = false;
+    this.icon = buildActionIcon(OBSTACLE_CONFIGS[type]);
+    // Protesters hold their sign over their right side, so their icon sits to the left
+    this.icon.position.set(type === 'protester' ? 0.75 : 0, type === 'protester' ? 3.0 : 3.35, 0);
+    this.view.root.add(this.icon);
     scene.add(this.view.root);
   }
 
@@ -123,6 +178,7 @@ export class Game3D {
 
   // Jump / slide
   private jumpStart: number | null = null;
+  private jumpQueued = false;
   private slideStart: number | null = null;
 
   // Pickups and power-ups
@@ -203,6 +259,7 @@ export class Game3D {
     for (const e of this.enemies) this.deactivate(e);
 
     this.jumpStart = null;
+    this.jumpQueued = false;
     this.slideStart = null;
     this.shield = false;
     this.magnetUntil = 0;
@@ -262,17 +319,35 @@ export class Game3D {
   }
 
   jump(): void {
-    if (this.over || this.jumpStart !== null) return;
+    if (this.over) return;
+    if (this.jumpStart !== null) {
+      if (this.time - this.jumpStart > JUMP_MS - JUMP_BUFFER_MS) this.jumpQueued = true;
+      return;
+    }
     this.slideStart = null; // jumping cancels a slide
     this.jumpStart = this.time;
+    this.forgiveLate('jump');
     this.events.jump();
   }
 
   slide(): void {
     if (this.over) return;
     this.jumpStart = null; // sliding mid-air drops Bolt straight down
+    this.jumpQueued = false;
     this.slideStart = this.time;
+    this.forgiveLate('slide');
     this.events.slide();
+  }
+
+  /** A slightly late jump/slide still clears an enemy that's mid-contact. */
+  private forgiveLate(action: 'jump' | 'slide'): void {
+    for (const e of this.enemies) {
+      if (!e.active || !e.graceUntil) continue;
+      if ((action === 'jump' && e.config.canJump) || (action === 'slide' && e.config.canSlide)) {
+        e.cleared = true;
+        e.graceUntil = 0;
+      }
+    }
   }
 
   private isJumping(): boolean { return this.jumpStart !== null; }
@@ -332,6 +407,10 @@ export class Game3D {
       const k = (this.time - this.jumpStart) / JUMP_MS;
       if (k >= 1) {
         this.jumpStart = null;
+        if (this.jumpQueued) {
+          this.jumpQueued = false;
+          this.jump();
+        }
         this.sparks.burst(this.tmp.set(root.position.x, 0.1, PLAYER_Z), { count: 10, color: 0xbbbbbb, speed: 3, up: 1, life: 0.35 });
       } else {
         root.position.y = 4 * JUMP_HEIGHT * k * (1 - k);
@@ -475,6 +554,9 @@ export class Game3D {
     e.lane = lane;
     e.active = true;
     e.dodged = false;
+    e.cleared = false;
+    e.graceUntil = 0;
+    e.icon.visible = true;
     e.zigzagged = false;
     e.laneTween = null;
     e.knock = null;
@@ -497,6 +579,8 @@ export class Game3D {
 
   private knockEnemy(e: Enemy): void {
     e.dodged = true;
+    e.graceUntil = 0;
+    e.icon.visible = false;
     e.zigzagAt = null;
     e.laneTween = null;
     const side = e.x === this.bolt.root.position.x ? (Math.random() < 0.5 ? -1 : 1) : Math.sign(e.x - this.bolt.root.position.x);
@@ -526,6 +610,9 @@ export class Game3D {
 
     e.root.position.z += scroll + e.config.speed * ZK * dt;
     e.view.animate(dt, 1 + e.config.speed / 260);
+    const threat = e.lane === this.lane && e.z > -28 && e.z < 0 && !e.dodged && !e.cleared;
+    e.icon.scale.setScalar(threat ? 1.05 + Math.sin(this.time / 70) * 0.2 : 0.85);
+    if (e.z > -1) e.icon.visible = false; // out of the way once it reaches Bolt
 
     if (e.zigzagAt !== null && this.time >= e.zigzagAt) {
       e.zigzagAt = null;
@@ -755,6 +842,22 @@ export class Game3D {
       if (!e.active || e.knock) continue;
       const dz = e.z - PLAYER_Z;
 
+      // Pending late-reaction window: the hit lands when it runs out, unless
+      // Bolt jumped/slid (forgiveLate) or swerved out of the lane in time
+      if (e.graceUntil) {
+        if (e.cleared || e.lane !== this.lane) {
+          e.graceUntil = 0;
+        } else if (this.time >= e.graceUntil) {
+          e.graceUntil = 0;
+          e.dodged = true;
+          if (overdrive) this.knockEnemy(e);
+          else if (!this.isInvincible()) this.onPlayerHit(e);
+          continue;
+        } else {
+          continue;
+        }
+      }
+
       // Passed the player — award dodge if not already handled
       if (dz > 60 * ZK) {
         if (!e.dodged) {
@@ -776,10 +879,16 @@ export class Game3D {
           this.knockEnemy(e);
           continue;
         }
-        // Jumpable enemies are cleared from above, slideable ones from below
-        const cleared = (e.config.canJump && this.getPlayerY() > CLEAR_HEIGHT) ||
-          (e.config.canSlide && this.isSliding());
-        if (cleared) continue; // stays undodged so the pass-by still awards the dodge bonus
+        // Jumpable enemies are cleared from above, slideable ones from below.
+        // Clearing sticks, so landing a little early doesn't turn into a hit.
+        if ((e.config.canJump && this.getPlayerY() > CLEAR_HEIGHT) || (e.config.canSlide && this.isSliding())) {
+          e.cleared = true;
+        }
+        if (e.cleared) continue; // stays undodged so the pass-by still awards the dodge bonus
+        if (e.config.canJump || e.config.canSlide) {
+          e.graceUntil = this.time + LATE_GRACE_MS;
+          continue;
+        }
         e.dodged = true;
         if (!this.isInvincible()) this.onPlayerHit(e);
       } else if (!this.isInvincible() && !overdrive) {
