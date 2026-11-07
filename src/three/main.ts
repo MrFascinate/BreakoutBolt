@@ -169,7 +169,9 @@ function showHint(): void {
   if (runs >= 3) return;
   try { localStorage.setItem(HINT_KEY, String(runs + 1)); } catch { /* storage unavailable */ }
   const touch = window.matchMedia('(pointer: coarse)').matches;
-  restartAnim(ui.hint, touch ? 'SWIPE ↑ JUMP  •  ↓ SLIDE' : '↑ JUMP  •  ↓ SLIDE  •  ← → MOVE');
+  restartAnim(ui.hint);
+  ui.hint.innerHTML = (touch ? 'SWIPE ↑ JUMP  •  ↓ SLIDE' : '↑ JUMP  •  ↓ SLIDE  •  ← → MOVE') +
+    '<br><span style="color:#ff8a80">AGENTS CAN’T BE JUMPED!</span>';
 }
 
 function togglePause(): void {

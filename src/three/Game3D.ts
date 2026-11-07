@@ -72,47 +72,6 @@ export interface PowerState {
   charge: number; // 0..1
 }
 
-/**
- * Green ▲ = jump over, green ▲▼ = jump or slide, red ◀▶ = can't be jumped, change lanes.
- */
-const iconCache = new Map<string, THREE.SpriteMaterial>();
-function buildActionIcon(config: ObstacleConfig): THREE.Sprite {
-  const key = `${config.canJump}-${config.canSlide}`;
-  if (!iconCache.has(key)) {
-    const c = document.createElement('canvas');
-    c.width = c.height = 128;
-    const ctx = c.getContext('2d')!;
-    const passable = config.canJump || config.canSlide;
-    ctx.beginPath();
-    ctx.arc(64, 64, 56, 0, Math.PI * 2);
-    ctx.fillStyle = passable ? '#21b64a' : '#e0322b';
-    ctx.fill();
-    ctx.lineWidth = 8;
-    ctx.strokeStyle = '#ffffff';
-    ctx.stroke();
-    ctx.fillStyle = '#ffffff';
-    const tri = (x: number, y: number, dir: 'up' | 'down' | 'left' | 'right', s: number) => {
-      ctx.beginPath();
-      if (dir === 'up') { ctx.moveTo(x, y - s); ctx.lineTo(x + s, y + s * 0.7); ctx.lineTo(x - s, y + s * 0.7); }
-      if (dir === 'down') { ctx.moveTo(x, y + s); ctx.lineTo(x + s, y - s * 0.7); ctx.lineTo(x - s, y - s * 0.7); }
-      if (dir === 'left') { ctx.moveTo(x - s, y); ctx.lineTo(x + s * 0.7, y - s); ctx.lineTo(x + s * 0.7, y + s); }
-      if (dir === 'right') { ctx.moveTo(x + s, y); ctx.lineTo(x - s * 0.7, y - s); ctx.lineTo(x - s * 0.7, y + s); }
-      ctx.closePath();
-      ctx.fill();
-    };
-    if (config.canJump && config.canSlide) { tri(64, 42, 'up', 22); tri(64, 88, 'down', 22); }
-    else if (config.canJump) tri(64, 60, 'up', 30);
-    else if (config.canSlide) tri(64, 68, 'down', 30);
-    else { tri(38, 64, 'left', 22); tri(90, 64, 'right', 22); }
-    const tex = new THREE.CanvasTexture(c);
-    tex.colorSpace = THREE.SRGBColorSpace;
-    iconCache.set(key, new THREE.SpriteMaterial({ map: tex, fog: false, depthWrite: false }));
-  }
-  const sprite = new THREE.Sprite(iconCache.get(key)!);
-  sprite.scale.setScalar(0.85);
-  return sprite;
-}
-
 class Enemy {
   view: EnemyView;
   config!: ObstacleConfig;
@@ -128,16 +87,10 @@ class Enemy {
   cleared = false;
   /** Contact happened without clearing; the hit lands at this time unless Bolt reacts. */
   graceUntil = 0;
-  /** Floating icon telling the player how to get past this enemy. */
-  icon: THREE.Sprite;
 
   constructor(readonly type: ObstacleType, scene: THREE.Scene, makeView: (type: ObstacleType) => EnemyView) {
     this.view = makeView(type);
     this.view.root.visible = false;
-    this.icon = buildActionIcon(OBSTACLE_CONFIGS[type]);
-    // Protesters hold their sign over their right side, so their icon sits to the left
-    this.icon.position.set(type === 'protester' ? 0.75 : 0, type === 'protester' ? 3.0 : 3.35, 0);
-    this.view.root.add(this.icon);
     scene.add(this.view.root);
   }
 
@@ -556,7 +509,6 @@ export class Game3D {
     e.dodged = false;
     e.cleared = false;
     e.graceUntil = 0;
-    e.icon.visible = true;
     e.zigzagged = false;
     e.laneTween = null;
     e.knock = null;
@@ -580,7 +532,6 @@ export class Game3D {
   private knockEnemy(e: Enemy): void {
     e.dodged = true;
     e.graceUntil = 0;
-    e.icon.visible = false;
     e.zigzagAt = null;
     e.laneTween = null;
     const side = e.x === this.bolt.root.position.x ? (Math.random() < 0.5 ? -1 : 1) : Math.sign(e.x - this.bolt.root.position.x);
@@ -610,9 +561,6 @@ export class Game3D {
 
     e.root.position.z += scroll + e.config.speed * ZK * dt;
     e.view.animate(dt, 1 + e.config.speed / 260);
-    const threat = e.lane === this.lane && e.z > -28 && e.z < 0 && !e.dodged && !e.cleared;
-    e.icon.scale.setScalar(threat ? 1.05 + Math.sin(this.time / 70) * 0.2 : 0.85);
-    if (e.z > -1) e.icon.visible = false; // out of the way once it reaches Bolt
 
     if (e.zigzagAt !== null && this.time >= e.zigzagAt) {
       e.zigzagAt = null;
