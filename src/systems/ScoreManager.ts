@@ -23,6 +23,11 @@ export class ScoreManager {
     this.score += Math.floor(CONSTANTS.NEAR_MISS_BONUS * this.comboMultiplier);
   }
 
+  /** Flat points (pickups, knockouts), scaled by the current combo multiplier. */
+  addBonus(points: number): void {
+    this.score += Math.floor(points * this.comboMultiplier);
+  }
+
   resetCombo(): void {
     this.consecutiveDodges = 0;
     this.comboMultiplier = 1;
