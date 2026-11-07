@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Breakout Bolt 3D</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: #000; }
+    body { font-family: 'Arial Black', Arial, sans-serif; color: #fff; user-select: none; -webkit-user-select: none; }
+
+    /* Same portrait column as the 2D game (max 480px wide) */
+    #app { position: relative; width: 100%; max-width: 480px; height: 100%; margin: 0 auto; overflow: hidden; background: #0d0d1a; touch-action: none; }
+    #app canvas { display: block; position: absolute; inset: 0; }
+
+    /* Outline via text-shadow (works in every browser, unlike text-stroke ordering) */
+    #app * {
+      --n: calc(var(--o, 0px) * -1); --d: calc(var(--o, 0px) * 0.7); --nd: calc(var(--o, 0px) * -0.7);
+      text-shadow: var(--o, 0px) 0 #000, var(--n) 0 #000, 0 var(--o, 0px) #000, 0 var(--n) #000,
+        var(--d) var(--d) #000, var(--nd) var(--d) #000, var(--d) var(--nd) #000, var(--nd) var(--nd) #000;
+    }
+    .screen { position: absolute; inset: 0; z-index: 20; }
+    .hidden { display: none !important; }
+    .stroke { --o:2px; }
+    .abs { position: absolute; left: 50%; transform: translate(-50%, -50%); white-space: nowrap; text-align: center; }
+
+    .btn {
+      position: absolute; left: 50%; transform: translate(-50%, -50%);
+      height: 50px; border-radius: 14px; border: 3px solid rgba(255,255,255,0.8);
+      font: 24px 'Arial Black', Arial, sans-serif; color: #fff; cursor: pointer;
+      --o:2px;
+      transition: background 0.12s, filter 0.12s;
+    }
+    .btn.green { background: #00cc44; }
+    .btn.green:hover { background: #00ff55; border-color: #fff; }
+    .btn.slate { background: #444466; color: #ccc; font-size: 20px; border-color: rgba(255,255,255,0.5); --o:1.5px; }
+    .btn.slate:hover { background: #555588; border-color: rgba(255,255,255,0.7); }
+    .btn:active { filter: brightness(0.85); }
+    @keyframes pulse { from { transform: translate(-50%, -50%) scale(1); } to { transform: translate(-50%, -50%) scale(1.05); } }
+    .pulse { animation: pulse 0.8s ease-in-out infinite alternate; }
+
+    /* Title */
+    #title { background: url('characters/Intro.png') center / 100% 100% no-repeat; }
+    .title-word { font-family: 'Courier New', 'Lucida Console', monospace; font-weight: bold; color: #0066ff; --o:4px; }
+    @keyframes float { from { transform: translateY(0); } to { transform: translateY(-6px); } }
+    #titleWords { position: absolute; inset: 0; animation: float 1.2s ease-in-out infinite alternate; }
+
+    /* HUD */
+    #hud { position: absolute; inset: 0; z-index: 10; pointer-events: none; }
+    #hudBar { position: absolute; top: 0; left: 0; right: 0; height: 50px; background: rgba(0,0,0,0.6); }
+    .hud-text { position: absolute; font-family: Arial, sans-serif; --o:1px; }
+    #distance { left: 16px; top: 6px; font-size: 14px; color: #d4a574; }
+    #lives { left: 50%; transform: translateX(-50%); top: 4px; font-size: 18px; color: #ffff00; letter-spacing: 3px; }
+    #score { right: 16px; top: 6px; font-size: 14px; color: #fff; }
+    #level { left: 50%; transform: translateX(-50%); top: 28px; font: 16px 'Arial Black', Arial; color: #ff6b35; --o:1.5px; }
+    #pauseBtn { position: absolute; right: 12px; top: 22px; font-size: 22px; background: none; border: 0; color: #fff; cursor: pointer; pointer-events: auto; }
+    #toast { top: 70px; font-size: 20px; color: #ffdd00; opacity: 0; }
+    #toast.show { animation: toast 0.9s ease-out forwards; }
+    @keyframes toast { from { opacity: 1; top: 70px; } to { opacity: 0; top: 56px; } }
+    #levelUp { top: 35%; font-size: 48px; color: #ff6b35; --o:4px; opacity: 0; }
+    #levelUp.show { animation: levelUp 1.5s forwards; }
+    @keyframes levelUp {
+      0% { opacity: 1; transform: translate(-50%, -50%) scale(0.3); }
+      27% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+      67% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+      100% { opacity: 0; transform: translate(-50%, calc(-50% - 40px)) scale(1); }
+    }
+    #flash { position: absolute; inset: 0; background: #ff0000; opacity: 0; pointer-events: none; z-index: 11; }
+    #flash.show { animation: flash 0.2s ease-out; }
+    @keyframes flash { from { opacity: 0.45; } to { opacity: 0; } }
+
+    #pause { background: rgba(0,0,0,0.7); z-index: 30; cursor: pointer; }
+
+    /* Game over */
+    #gameover { background: url('characters/Game Over.png') center / 100% 100% no-repeat; }
+    #gameover::before { content: ''; position: absolute; inset: 0; background: rgba(0,0,0,0.45); }
+    #goTitle { top: 15%; font-size: 42px; color: #ff4444; --o:3px; }
+    #goTitle.pop { animation: pop 0.5s cubic-bezier(.34,1.56,.64,1) both; }
+    @keyframes pop { from { opacity: 0; transform: translate(-50%, -50%) scale(0.5); } to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
+    #scoreBox {
+      position: absolute; left: 9%; width: 82%; top: 20%; height: 26%;
+      background: rgba(26,10,46,0.85); border: 2px solid rgba(255,221,0,0.6); border-radius: 16px;
+    }
+    #scoreBox .label { color: #aaa; font-size: 14px; }
+    #scoreBox hr { position: absolute; left: 12%; right: 12%; top: 52%; border: 0; border-top: 1px solid rgba(255,255,255,0.25); }
+    @keyframes badge { from { transform: translate(-50%, -50%) scale(1); } to { transform: translate(-50%, -50%) scale(1.1); } }
+    #newBest { color: #ffdd00; font-size: 14px; --o:1.5px; animation: badge 0.5s ease-in-out infinite alternate; }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div id="hud" class="hidden">
+      <div id="hudBar"></div>
+      <div id="distance" class="hud-text">0.00 mi</div>
+      <div id="lives" class="hud-text"></div>
+      <div id="score" class="hud-text">0</div>
+      <div id="level" class="hud-text">LEVEL 1</div>
+      <button id="pauseBtn" aria-label="Pause">&#9208;</button>
+      <div id="toast" class="abs stroke">+100 CLOSE CALL</div>
+      <div id="levelUp" class="abs stroke"></div>
+    </div>
+    <div id="flash"></div>
+
+    <div id="pause" class="screen hidden">
+      <div class="abs stroke" style="top:38%;font-size:48px;--o:3px">PAUSED</div>
+      <div class="abs" style="top:47%;font:14px Arial;color:#ccc">Tap anywhere or press P to resume</div>
+    </div>
+
+    <div id="title" class="screen">
+      <div id="titleWords">
+        <div class="abs title-word" style="top:7%;font-size:42px;letter-spacing:10px">BREAKOUT</div>
+        <div class="abs title-word" style="top:13%;font-size:56px;letter-spacing:16px">BOLT</div>
+      </div>
+      <div id="titleBest" class="abs stroke" style="top:42%;font-size:16px;--o:1.5px"></div>
+      <button id="startBtn" class="btn green pulse" style="top:78%;width:min(55%,220px)">START</button>
+    </div>
+
+    <div id="gameover" class="screen hidden">
+      <div id="goTitle" class="abs">GAME OVER</div>
+      <div id="scoreBox">
+        <div class="abs label" style="top:16%">SCORE</div>
+        <div id="goScore" class="abs stroke" style="top:34%;font-size:38px">0</div>
+        <hr />
+        <div class="abs label" style="top:62%;font-size:12px">HIGH SCORE</div>
+        <div id="goBest" class="abs stroke" style="top:76%;font-size:24px;color:#ffdd00;--o:1.5px">0</div>
+        <div id="newBest" class="abs hidden" style="top:92%">NEW HIGH SCORE!</div>
+      </div>
+      <div id="goLevel" class="abs stroke" style="top:calc(46% + 20px);left:30%;font-size:16px;color:#ff6b35;--o:1.5px"></div>
+      <div id="goDistance" class="abs stroke" style="top:calc(46% + 20px);left:70%;font-size:16px;color:#d4a574;--o:1.5px"></div>
+      <button id="retryBtn" class="btn green" style="top:74%;width:min(60%,240px);font-size:22px">TRY AGAIN</button>
+      <button id="menuBtn" class="btn slate" style="top:85%;width:min(60%,240px)">MAIN MENU</button>
+    </div>
+  </div>
+  <script type="module" src="/src/three/main.ts"></script>
+</body>
+</html>
