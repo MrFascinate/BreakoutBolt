@@ -21,6 +21,15 @@ const DESPAWN_Z = 12; // behind the camera
 const MIN_VERTICAL_GAP = 180 * ZK;
 const GLOBAL_SPAWN_COOLDOWN = 300;
 const PATROL_INTERVAL = 60000;
+
+// Late game: past MAX_LEVEL, a new level every mile ramps difficulty further
+// until OVERTIME_LEVELS more levels, then holds. Level numbers keep counting.
+const OVERTIME_LEVEL_DISTANCE = 16093; // one mile in 2D px (ScoreManager's mile)
+const OVERTIME_LEVELS = 10;
+const OVERTIME_SPEED_BOOST = 0.2; // up to +20% over MAX_SPEED
+const OVERTIME_GAP_CUT = 0.3; // spawn gaps up to 30% shorter
+const OVERTIME_PAIR_CHANCE = 0.45; // chance a spawn comes with a partner in another lane
+const OVERTIME_PATROL_CUT = 0.5; // roadblocks up to twice as often
 const POOL_PER_TYPE = 8;
 const TYPES: ObstacleType[] = ['agent', 'cameraman', 'protester'];
 
@@ -487,15 +496,22 @@ export class Game3D {
   // ---------------------------------------------------------------- level
 
   private checkLevelUp(): void {
-    if (this.level >= CONSTANTS.MAX_LEVEL) return;
-    if (this.score.getDistance() >= this.distanceForNextLevel) {
-      this.level++;
-      this.distanceForNextLevel += CONSTANTS.LEVEL_DISTANCE;
+    if (this.score.getDistance() < this.distanceForNextLevel) return;
+    this.level++;
+    if (this.level <= CONSTANTS.MAX_LEVEL) {
       const speedRange = CONSTANTS.MAX_SPEED - CONSTANTS.INITIAL_SPEED;
       const levelRatio = (this.level - 1) / (CONSTANTS.MAX_LEVEL - 1);
       this.speed = CONSTANTS.INITIAL_SPEED + speedRange * levelRatio;
-      this.events.levelChanged(this.level);
+    } else {
+      this.speed = CONSTANTS.MAX_SPEED * (1 + OVERTIME_SPEED_BOOST * this.overtime());
     }
+    this.distanceForNextLevel += this.level >= CONSTANTS.MAX_LEVEL ? OVERTIME_LEVEL_DISTANCE : CONSTANTS.LEVEL_DISTANCE;
+    this.events.levelChanged(this.level);
+  }
+
+  /** 0 up to MAX_LEVEL, rising to 1 over the next OVERTIME_LEVELS levels. */
+  private overtime(): number {
+    return THREE.MathUtils.clamp((this.level - CONSTANTS.MAX_LEVEL) / OVERTIME_LEVELS, 0, 1);
   }
 
   // ---------------------------------------------------------------- enemies
@@ -714,15 +730,23 @@ export class Game3D {
       this.spawnObstacle();
       this.timeSinceLastSpawn = 0;
     }
-    if (this.patrolTimer >= PATROL_INTERVAL) {
-      this.spawnPatrol();
+    // If the roadblock can't leave an open lane right now, it retries next frame
+    if (this.patrolTimer >= PATROL_INTERVAL * (1 - OVERTIME_PATROL_CUT * this.overtime()) && this.spawnPatrol()) {
       this.patrolTimer = 0;
     }
   }
 
   private getMinGap(): number {
-    return CONSTANTS.MIN_OBSTACLE_GAP -
-      (CONSTANTS.MIN_OBSTACLE_GAP - CONSTANTS.MIN_OBSTACLE_GAP_AT_MAX) * this.getSpeedRatio();
+    // Speed ratio is capped at 1 here; the late game shortens gaps separately
+    const ratio = Math.min(this.getSpeedRatio(), 1);
+    return (CONSTANTS.MIN_OBSTACLE_GAP -
+      (CONSTANTS.MIN_OBSTACLE_GAP - CONSTANTS.MIN_OBSTACLE_GAP_AT_MAX) * ratio) *
+      (1 - OVERTIME_GAP_CUT * this.overtime());
+  }
+
+  /** Any non-knocked enemy in exactly this lane within `range` of z. */
+  private laneOccupied(lane: number, z: number, range: number): boolean {
+    return this.enemies.some((e) => e.active && !e.knock && e.lane === lane && Math.abs(e.z - z) < range);
   }
 
   private isLaneTooClose(lane: number, z: number): boolean {
@@ -748,17 +772,37 @@ export class Game3D {
       const safe = [0, 1, 2].filter((l) => l !== lane && !this.isLaneTooClose(l, groupZ));
       if (safe.length > 0) {
         this.spawnEnemy(OBSTACLE_CONFIGS['cameraman'], safe[Math.floor(Math.random() * safe.length)], groupZ);
+        return;
+      }
+    }
+
+    // Late game: a partner in another lane, as long as the third lane stays clear
+    if (Math.random() < OVERTIME_PAIR_CHANCE * this.overtime()) {
+      const options = [0, 1, 2].filter((l) => {
+        const open = 3 - lane - l;
+        return l !== lane && !this.laneOccupied(l, SPAWN_Z, MIN_VERTICAL_GAP) &&
+          !this.laneOccupied(open, SPAWN_Z, MIN_VERTICAL_GAP);
+      });
+      if (options.length > 0) {
+        this.spawnEnemy(OBSTACLE_CONFIGS[this.pickType()], options[Math.floor(Math.random() * options.length)], SPAWN_Z);
       }
     }
   }
 
-  /** Every 60s, agents block two lanes and leave one open. */
-  private spawnPatrol(): void {
-    const openLane = Math.floor(Math.random() * CONSTANTS.LANE_COUNT);
+  /**
+   * Every 60s (30s in the late game), agents block two lanes and leave one open.
+   * The open lane must actually be clear, or the roadblock would be a wall.
+   * Returns false (try again later) when no lane is clear.
+   */
+  private spawnPatrol(): boolean {
+    const clear = [0, 1, 2].filter((l) => !this.laneOccupied(l, SPAWN_Z, MIN_VERTICAL_GAP));
+    if (clear.length === 0) return false;
+    const openLane = clear[Math.floor(Math.random() * clear.length)];
     for (const lane of [0, 1, 2].filter((l) => l !== openLane)) {
-      this.spawnEnemy(OBSTACLE_CONFIGS['agent'], lane, SPAWN_Z);
+      if (!this.laneOccupied(lane, SPAWN_Z, 3)) this.spawnEnemy(OBSTACLE_CONFIGS['agent'], lane, SPAWN_Z);
     }
     this.globalCooldown = GLOBAL_SPAWN_COOLDOWN;
+    return true;
   }
 
   private pickType(): ObstacleType {

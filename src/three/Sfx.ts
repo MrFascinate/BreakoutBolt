@@ -209,9 +209,9 @@ class SfxEngine {
     this.timer = null;
   }
 
-  /** Music speeds up a little with each level. */
+  /** Music speeds up a little with each level, topping out at 180 BPM. */
   setLevel(level: number): void {
-    this.tempo = 124 + (level - 1) * 4;
+    this.tempo = 124 + Math.min(level - 1, 14) * 4;
   }
 
   private schedule(): void {
